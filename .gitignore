@@ -1,0 +1,36 @@
+# Environment and secrets (never commit)
+.env
+.env.local
+.env.*
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+venv/
+.venv/
+env/
+
+# IDE / OS
+.idea/
+.vscode/
+.DS_Store
+*.swp
+*.swo
+
+# Build / test
+dist/
+build/
+*.egg-info/
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Logs
+*.log
+
+# Large model files (exceed GitHub 100 MB limit; download separately or use LFS)
+app/ai_models/model.inceptionresnetv2.h5
+app/ai_models/ct_model/

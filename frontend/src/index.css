@@ -1,0 +1,99 @@
+@import "tailwindcss";
+
+:root {
+  font-family: 'Inter', system-ui, sans-serif;
+  line-height: 1.5;
+  font-weight: 400;
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+
+  /* Futuristic medical palette */
+  --bg-deep: #0a0e17;
+  --bg-navy: #0f172a;
+  --bg-card: rgba(15, 23, 42, 0.7);
+  --border-glass: rgba(148, 163, 184, 0.12);
+  --accent-blue: #38bdf8;
+  --accent-teal: #2dd4bf;
+  --glow-blue: rgba(56, 189, 248, 0.25);
+  --glow-teal: rgba(45, 212, 191, 0.2);
+  --text-primary: #f1f5f9;
+  --text-muted: #94a3b8;
+}
+
+@layer base {
+  body {
+    @apply min-h-screen text-slate-100;
+    background: var(--bg-deep);
+    background-image: radial-gradient(ellipse 80% 50% at 50% -20%, rgba(56, 189, 248, 0.08), transparent),
+                      radial-gradient(ellipse 60% 40% at 100% 50%, rgba(45, 212, 191, 0.06), transparent);
+  }
+}
+
+/* Glassmorphism */
+.glass-card {
+  background: var(--bg-card);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border: 1px solid var(--border-glass);
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2);
+}
+
+.glass-card-glow {
+  box-shadow: 0 4px 24px rgba(0, 0, 0, 0.2), 0 0 0 1px rgba(56, 189, 248, 0.06);
+}
+
+/* Soft glow for key elements */
+.glow-soft-blue {
+  box-shadow: 0 0 24px var(--glow-blue);
+}
+
+.glow-soft-teal {
+  box-shadow: 0 0 24px var(--glow-teal);
+}
+
+.text-glow {
+  text-shadow: 0 0 20px var(--glow-blue);
+}
+
+/* Subtle gradient borders */
+.border-gradient {
+  border: 1px solid transparent;
+  background: linear-gradient(var(--bg-card), var(--bg-card)) padding-box,
+              linear-gradient(135deg, rgba(56, 189, 248, 0.3), rgba(45, 212, 191, 0.2), transparent) border-box;
+}
+
+/* Animated gradient background for upload / CTA */
+@keyframes shimmer {
+  0% { background-position: -200% 0; }
+  100% { background-position: 200% 0; }
+}
+
+.animate-shimmer {
+  background: linear-gradient(90deg, transparent, rgba(56, 189, 248, 0.08), transparent);
+  background-size: 200% 100%;
+  animation: shimmer 2.5s ease-in-out infinite;
+}
+
+/* Number counter animation */
+@keyframes countPop {
+  0% { opacity: 0; transform: scale(0.9); }
+  100% { opacity: 1; transform: scale(1); }
+}
+
+/* Chart bar animation */
+@keyframes barGrow {
+  from { transform: scaleX(0); }
+  to { transform: scaleX(1); }
+}
+
+.animate-bar {
+  transform-origin: left;
+  animation: barGrow 0.8s ease-out forwards;
+}
+
+/* Circular gauge */
+.confidence-ring {
+  transform: rotate(-90deg); /* Start from top */
+}
