@@ -30,18 +30,22 @@ def verify_access_token(token : str , crendentials_exception):
 
         if id is None:
             raise crendentials_exception
-        
-        token_data = TokenData(id=id, role=role)
+        token_data = TokenData(id=str(id), role=role if isinstance(role, str) else str(role) if role is not None else None)
     except JWTError:
         raise crendentials_exception
     
     return token_data
         
 
-def get_current_user(token : str = Depends(oauth2_scheme) , db : Session = Depends(get_db)):
-    credentials_exception = HTTPException(status_code = status.HTTP_401_UNAUTHORIZED , detail = "could not validate credentials" , headers = {"WWW-Authenticate" : "Bearer"})
-    token = verify_access_token(token , crendentials_exception)
-    data = db.query(UserModel).filter(UserModel.id == token.id).first()
+def get_current_user(token: str = Depends(oauth2_scheme), db: Session = Depends(get_db)):
+    credentials_exception = HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="could not validate credentials", headers={"WWW-Authenticate": "Bearer"})
+    token_data = verify_access_token(token, credentials_exception)
+    user_id = int(token_data.id) if token_data.id is not None else None
+    if user_id is None:
+        raise credentials_exception
+    data = db.query(UserModel).filter(UserModel.id == user_id).first()
+    if data is None:
+        raise credentials_exception
     return data
 
 

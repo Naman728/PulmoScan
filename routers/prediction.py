@@ -19,11 +19,11 @@ def create_prediction(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # Only doctors can create predictions
-    if current_user.role != "doctor":
+    # Only doctors and admins can create predictions
+    if current_user.role not in ("doctor", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only doctors can create predictions"
+            detail="Only doctors or administrators can create predictions"
         )
 
     # Check if patient exists
@@ -73,7 +73,8 @@ def get_all_predictions(
 ):
     # Get all patients belonging to this doctor
     patient_ids = [p.id for p in db.query(PatientModel).filter(PatientModel.doctor_id == current_user.id).all()]
-    
+    if not patient_ids:
+        return []
     # Get all predictions for those patients
     predictions = db.query(Prediction).filter(Prediction.patient_id.in_(patient_ids)).all()
     return predictions

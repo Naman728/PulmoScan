@@ -31,9 +31,10 @@ export default function Dashboard() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
-  const { data: patients, isLoading: patientsLoading, isError: patientsError } = useQuery({
+  const { data: patients, isLoading: patientsLoading, isError: patientsError, refetch: refetchPatients } = useQuery({
     queryKey: ['patients'],
     queryFn: patientService.getAll,
+    retry: (failureCount, error) => error?.response?.status !== 401,
   });
 
   const { data: predictions, isLoading: predictionsLoading } = useQuery({
@@ -80,29 +81,30 @@ export default function Dashboard() {
     );
   }
 
-  if (patientsError || !patients?.length) {
+  // Only show full-page empty state on error; otherwise show dashboard (even with 0 patients)
+  if (patientsError) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <div className="mb-6">
           <EmptyStatePatients className="w-28 h-28 mx-auto" />
           <EmptyStateLung className="w-24 h-20 mx-auto mt-2 opacity-60" />
         </div>
-        <h2 className="text-xl font-semibold text-white">No scans analyzed yet</h2>
+        <h2 className="text-xl font-semibold text-white">Could not load dashboard</h2>
         <p className="mt-2 text-sm text-slate-400 max-w-sm">
-          Upload your first scan to start AI diagnosis, or add a patient to get started.
+          Failed to load patients. Check your connection and that the backend is running (see console for API errors).
         </p>
         <div className="mt-6 flex flex-wrap items-center justify-center gap-3">
           <button
             type="button"
-            onClick={() => navigate('/upload')}
-            className="px-6 py-3 bg-teal-500/20 border border-teal-500/40 text-teal-300 rounded-xl font-medium hover:bg-teal-500/30 flex items-center gap-2 transition-colors"
+            onClick={() => refetchPatients()}
+            className="px-6 py-3 bg-sky-500 text-white rounded-xl font-medium hover:bg-sky-400 flex items-center gap-2 transition-colors"
           >
-            <ScanLine className="w-5 h-5" /> Upload scan
+            Retry
           </button>
           <button
             type="button"
             onClick={() => navigate('/patients/add')}
-            className="px-6 py-3 bg-sky-500 text-white rounded-xl font-medium hover:bg-sky-400 flex items-center gap-2 transition-colors"
+            className="px-6 py-3 bg-slate-600 text-white rounded-xl font-medium hover:bg-slate-500 flex items-center gap-2 transition-colors"
           >
             <Plus className="w-5 h-5" /> Add patient
           </button>
@@ -111,11 +113,30 @@ export default function Dashboard() {
     );
   }
 
+  const patientList = patients ?? [];
+
   return (
     <div className="space-y-8">
-      <div>
-        <h1 className="text-2xl font-bold text-white">Dashboard</h1>
-        <p className="text-slate-400 mt-1">Overview of your AI diagnostic activity.</p>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div>
+          <h1 className="text-2xl font-bold text-white">Dashboard</h1>
+          <p className="text-slate-400 mt-1">Overview of your AI diagnostic activity.</p>
+        </div>
+        {patientList.length === 0 && (
+          <div className="flex items-center gap-3 px-4 py-3 rounded-xl bg-sky-500/10 border border-sky-500/20">
+            <EmptyStatePatients className="w-10 h-10 text-sky-400 shrink-0" />
+            <div className="flex flex-wrap items-center gap-2">
+              <p className="text-sm text-slate-300">Add a patient to start recording predictions.</p>
+              <button
+                type="button"
+                onClick={() => navigate('/patients/add')}
+                className="px-4 py-2 bg-sky-500 text-white rounded-lg text-sm font-semibold hover:bg-sky-400 transition-colors flex items-center gap-2"
+              >
+                <Plus className="w-4 h-4" /> Add patient
+              </button>
+            </div>
+          </div>
+        )}
       </div>
 
       {/* AI System Status Card */}
@@ -164,7 +185,7 @@ export default function Dashboard() {
         {[
           {
             icon: Users,
-            value: patients.length,
+            value: patientList.length,
             label: 'Patients Analyzed',
             trend: null,
             color: 'sky',

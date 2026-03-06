@@ -19,11 +19,11 @@ def create_xray(
     current_user = Depends(get_current_user)
 ):
     
-    # Allow only doctor
-    if current_user.role != "doctor":
+    # Allow only doctor or admin
+    if current_user.role not in ("doctor", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only doctors can upload X-rays"
+            detail="Only doctors or administrators can upload X-rays"
         )
 
     # Check if patient exists

@@ -18,11 +18,11 @@ def create_patient(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # Only doctors can create patients
-    if current_user.role != "doctor":
+    # Only doctors and admins can create patients
+    if current_user.role not in ("doctor", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only doctors can create patients"
+            detail="Only doctors or administrators can create patients"
         )
 
     new_patient = PatientModel(

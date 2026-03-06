@@ -37,6 +37,6 @@ def create_user(user: UserCreate, db: Session = Depends(get_db)):
 
     return new_user
 
-@router.get("/me")
+@router.get("/me", response_model=UserResponse)
 def get_me(current_user=Depends(oauth.get_current_user)):
     return current_user

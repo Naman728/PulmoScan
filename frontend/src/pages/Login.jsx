@@ -24,9 +24,17 @@ const Login = () => {
         setIsSubmitting(true);
         try {
             const data = await authService.login(email, password);
-            login(data.access_token);
+            const token = typeof data === 'string' ? data : (data?.access_token ?? data);
+            if (!token || (typeof token !== 'string')) {
+                toast.error('Invalid login response. Please try again.');
+                return;
+            }
+            login(token);
         } catch (error) {
-            toast.error(error.response?.data?.detail || 'Login failed. Please check your credentials.');
+            const message = !error.response
+                ? 'Cannot reach server. Is the backend running at http://localhost:8000?'
+                : (error.response?.data?.detail || error.response?.data?.message || 'Login failed. Check your credentials.');
+            toast.error(message);
         } finally {
             setIsSubmitting(false);
         }

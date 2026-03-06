@@ -19,11 +19,11 @@ def create_ct_scan(
     db: Session = Depends(get_db),
     current_user=Depends(get_current_user)
 ):
-    # Only doctors can upload CT scans
-    if current_user.role != "doctor":
+    # Only doctors and admins can upload CT scans
+    if current_user.role not in ("doctor", "admin"):
         raise HTTPException(
             status_code=status.HTTP_403_FORBIDDEN,
-            detail="Only doctors can upload CT scans"
+            detail="Only doctors or administrators can upload CT scans"
         )
 
     # Check if patient exists

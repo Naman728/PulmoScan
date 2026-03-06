@@ -9,9 +9,10 @@ export default function Patients() {
   const navigate = useNavigate();
   const [search, setSearch] = useState('');
 
-  const { data: patients, isLoading, isError } = useQuery({
+  const { data: patients, isLoading, isError, refetch } = useQuery({
     queryKey: ['patients'],
     queryFn: patientService.getAll,
+    retry: (failureCount, error) => error?.response?.status !== 401,
   });
 
   const filtered = useMemo(() => {
@@ -40,9 +41,10 @@ export default function Patients() {
       <div className="flex flex-col items-center justify-center py-24 text-center">
         <AlertCircle className="w-12 h-12 text-red-400" />
         <h2 className="mt-4 text-lg font-semibold text-white">Failed to load patients</h2>
+        <p className="mt-2 text-sm text-slate-400 max-w-sm">Check the browser console for API errors. Ensure the backend is running.</p>
         <button
           type="button"
-          onClick={() => window.location.reload()}
+          onClick={() => refetch()}
           className="mt-4 px-4 py-2 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-400"
         >
           Retry

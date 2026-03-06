@@ -2,7 +2,7 @@ import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { predictionService, patientService } from '../services/api';
 import { useNavigate, useLocation } from 'react-router-dom';
-import { Search, Loader2, FileText, ChevronRight } from 'lucide-react';
+import { Search, Loader2, FileText, ChevronRight, AlertCircle } from 'lucide-react';
 import { formatConfidence } from '../utils/format';
 import { cn } from '../utils/cn';
 import { EmptyStateLung } from '../components/illustrations';
@@ -13,14 +13,16 @@ export default function PredictionsList() {
   const [search, setSearch] = useState('');
   const [filterRisk, setFilterRisk] = useState('');
 
-  const { data: predictions, isLoading } = useQuery({
+  const { data: predictions, isLoading, isError: predictionsError, refetch: refetchPredictions } = useQuery({
     queryKey: ['all-predictions'],
     queryFn: predictionService.getAll,
+    retry: (failureCount, error) => error?.response?.status !== 401,
   });
 
-  const { data: patients } = useQuery({
+  const { data: patients, isError: patientsError, refetch: refetchPatients } = useQuery({
     queryKey: ['patients'],
     queryFn: patientService.getAll,
+    retry: (failureCount, error) => error?.response?.status !== 401,
   });
 
   const patientMap = useMemo(() => {
@@ -86,7 +88,20 @@ export default function PredictionsList() {
         </select>
       </div>
 
-      {isLoading ? (
+      {predictionsError || patientsError ? (
+        <div className="flex flex-col items-center justify-center py-24 text-center">
+          <AlertCircle className="w-12 h-12 text-red-400" />
+          <h2 className="mt-4 text-lg font-semibold text-white">Failed to load reports</h2>
+          <p className="mt-2 text-sm text-slate-400 max-w-sm">Check the browser console for API errors.</p>
+          <button
+            type="button"
+            onClick={() => { refetchPredictions(); refetchPatients(); }}
+            className="mt-4 px-4 py-2 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-400"
+          >
+            Retry
+          </button>
+        </div>
+      ) : isLoading ? (
         <div className="flex items-center justify-center py-24">
           <Loader2 className="w-10 h-10 text-sky-400 animate-spin" />
         </div>

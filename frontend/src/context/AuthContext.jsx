@@ -40,7 +40,7 @@ export const AuthProvider = ({ children }) => {
                             const userData = await authService.getMe();
                             setUser(userData);
                         } catch (e) {
-                            setUser(decoded); // Fallback to token if API fails
+                            setUser({ email: decoded.email ?? `user_${decoded.user_id ?? 'unknown'}@session`, role: decoded.role ?? 'doctor' });
                         }
                     }
                 } catch (error) {
@@ -51,6 +51,18 @@ export const AuthProvider = ({ children }) => {
         };
         initAuth();
     }, []);
+
+    // React to 401 (e.g. token cleared by api interceptor)
+    useEffect(() => {
+        const onSessionExpired = () => {
+            setToken(null);
+            setUser(null);
+            toast.error('Session expired. Please log in again.');
+            navigate('/login');
+        };
+        window.addEventListener('auth:session-expired', onSessionExpired);
+        return () => window.removeEventListener('auth:session-expired', onSessionExpired);
+    }, [navigate]);
 
     // Dark Mode Handling
     useEffect(() => {
@@ -64,6 +76,10 @@ export const AuthProvider = ({ children }) => {
     }, [isDarkMode]);
 
     const handleLogin = async (newToken) => {
+        if (!newToken || typeof newToken !== 'string') {
+            toast.error('Invalid token received. Please try again.');
+            return;
+        }
         localStorage.setItem('token', newToken);
         setToken(newToken);
 
@@ -75,9 +91,16 @@ export const AuthProvider = ({ children }) => {
                 duration: 3000
             });
         } catch (error) {
-            const decoded = jwtDecode(newToken);
-            setUser(decoded);
-            toast.success('Access Granted', { icon: '🛡️' });
+            try {
+                const decoded = jwtDecode(newToken);
+                setUser({ email: decoded.email ?? `user_${decoded.user_id ?? 'unknown'}@session`, role: decoded.role ?? 'doctor' });
+                toast.success('Access Granted', { icon: '🛡️' });
+            } catch (decodeErr) {
+                localStorage.removeItem('token');
+                setToken(null);
+                toast.error('Session setup failed. Please log in again.');
+                return;
+            }
         }
         navigate('/dashboard');
     };

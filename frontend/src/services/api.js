@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = 'http://localhost:8000';
+const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -21,6 +21,21 @@ api.interceptors.request.use(
         return config;
     },
     (error) => {
+        return Promise.reject(error);
+    }
+);
+
+api.interceptors.response.use(
+    (response) => response,
+    (error) => {
+        const status = error.response?.status;
+        const url = error.config?.url != null ? `${error.config.baseURL || ''}${error.config.url}` : 'unknown';
+        const detail = error.response?.data?.detail ?? error.message;
+        console.error('[PulmoScan API]', status ?? 'NETWORK_ERR', url, detail);
+        if (status === 401) {
+            localStorage.removeItem('token');
+            window.dispatchEvent(new CustomEvent('auth:session-expired'));
+        }
         return Promise.reject(error);
     }
 );
