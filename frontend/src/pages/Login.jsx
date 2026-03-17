@@ -3,13 +3,15 @@ import { useNavigate, Link } from 'react-router-dom';
 import { motion } from 'framer-motion';
 import { useAuth } from '../context/AuthContext';
 import { authService } from '../services/api';
-import { LogIn, Mail, Lock, Loader2, Plus, ArrowRight } from 'lucide-react';
+import { LogIn, Mail, Lock, Loader2, ArrowRight, Shield, Zap, Eye, EyeOff } from 'lucide-react';
 import toast from 'react-hot-toast';
+import ctScanIllustration from '../assets/illustrations/ct_scan_machine.png';
 
 const Login = () => {
     const [email, setEmail] = useState('');
     const [password, setPassword] = useState('');
     const [isSubmitting, setIsSubmitting] = useState(false);
+    const [showPassword, setShowPassword] = useState(false);
     const { login, isAuthenticated } = useAuth();
     const navigate = useNavigate();
 
@@ -41,82 +43,148 @@ const Login = () => {
     };
 
     return (
-        <div className="min-h-screen flex items-center justify-center bg-[var(--bg-deep)] p-6 relative overflow-hidden">
-            {/* Decorative Background */}
-            <div className="absolute top-[-10%] left-[-10%] w-[40%] h-[40%] bg-sky-500/10 rounded-full blur-[120px]"></div>
-            <div className="absolute bottom-[-10%] right-[-10%] w-[40%] h-[40%] bg-teal-500/10 rounded-full blur-[120px]"></div>
+        <div className="min-h-screen flex overflow-hidden" style={{ background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 40%, #ECFDF5 100%)' }}>
+            {/* Left Panel — Illustration */}
+            <div className="hidden lg:flex lg:w-[55%] relative overflow-hidden items-center justify-center p-12"
+                style={{ background: 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 40%, #14B8A6 100%)' }}>
 
-            <motion.div
-                initial={{ opacity: 0, scale: 0.95, y: 20 }}
-                animate={{ opacity: 1, scale: 1, y: 0 }}
-                transition={{ duration: 0.5, ease: "easeOut" }}
-                className="w-full max-w-md"
-            >
-                <div className="glass-card p-10 rounded-[40px] border border-slate-700/50 relative z-10">
-                    <div className="flex flex-col items-center mb-10">
-                        <div className="w-16 h-16 rounded-2xl bg-sky-500/20 border border-sky-500/40 flex items-center justify-center mb-6 group hover:scale-110 transition-transform">
-                            <LogIn className="w-8 h-8 text-sky-300" />
-                        </div>
-                        <h1 className="text-3xl font-black text-white mb-2 tracking-tight">Welcome Back</h1>
-                        <p className="text-slate-400 font-semibold text-center leading-relaxed">Access your medical diagnostic dashboard</p>
+                {/* Abstract circles */}
+                <div className="absolute top-[-10%] left-[-10%] w-80 h-80 rounded-full opacity-10 bg-white"></div>
+                <div className="absolute bottom-[-8%] right-[-5%] w-96 h-96 rounded-full opacity-10 bg-white"></div>
+                <div className="absolute top-[20%] right-[-5%] w-48 h-48 rounded-full opacity-10 bg-white"></div>
+
+                <div className="relative z-10 text-center max-w-md">
+                    {/* Logo mark */}
+                    <div className="w-20 h-20 rounded-3xl bg-white/20 backdrop-blur-sm border border-white/30 flex items-center justify-center mx-auto mb-8">
+                        <Shield className="w-10 h-10 text-white" />
                     </div>
 
-                    <form onSubmit={handleSubmit} className="space-y-6">
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] ml-4">Email Address</label>
-                            <div className="relative group">
-                                <Mail className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-sky-400 transition-colors" />
-                                <input
-                                    type="email"
-                                    value={email}
-                                    onChange={(e) => setEmail(e.target.value)}
-                                    placeholder="doctor@pulmoscan.com"
-                                    className="w-full bg-slate-800/50 border border-slate-600 rounded-3xl py-4 pl-14 pr-6 outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500/50 transition-all font-medium text-slate-100 placeholder-slate-500"
-                                    required
-                                />
+                    <h2 className="text-4xl font-black text-white mb-4 leading-tight">
+                        AI-Powered<br />Medical Imaging
+                    </h2>
+                    <p className="text-sky-100 text-lg leading-relaxed mb-10">
+                        Detect pulmonary conditions with 97.2% accuracy using advanced deep learning and CT analysis.
+                    </p>
+
+                    {/* Stats row */}
+                    <div className="grid grid-cols-3 gap-4 mb-10">
+                        {[
+                            { label: 'Accuracy', value: '97.2%' },
+                            { label: 'Conditions', value: '8+' },
+                            { label: 'Speed', value: '<3s' },
+                        ].map((s) => (
+                            <div key={s.label} className="bg-white/15 rounded-2xl p-4 border border-white/20">
+                                <p className="text-2xl font-black text-white">{s.value}</p>
+                                <p className="text-xs text-sky-200 font-semibold mt-0.5">{s.label}</p>
                             </div>
-                        </div>
+                        ))}
+                    </div>
 
-                        <div className="space-y-2">
-                            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[2px] ml-4">Password</label>
-                            <div className="relative group">
-                                <Lock className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-sky-400 transition-colors" />
-                                <input
-                                    type="password"
-                                    value={password}
-                                    onChange={(e) => setPassword(e.target.value)}
-                                    placeholder="••••••••"
-                                    className="w-full bg-slate-800/50 border border-slate-600 rounded-3xl py-4 pl-14 pr-6 outline-none focus:ring-2 focus:ring-sky-500/30 focus:border-sky-500/50 transition-all font-medium text-slate-100 placeholder-slate-500"
-                                    required
-                                />
-                            </div>
-                        </div>
-
-                        <button
-                            type="submit"
-                            disabled={isSubmitting}
-                            className="w-full bg-sky-500 text-white rounded-[24px] py-5 font-black text-sm uppercase tracking-widest shadow-xl shadow-sky-500/30 hover:bg-sky-400 hover:scale-[0.98] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed group"
-                        >
-                            {isSubmitting ? (
-                                <Loader2 className="w-5 h-5 animate-spin" />
-                            ) : (
-                                <>
-                                    Connect <ArrowRight className="w-5 h-5 group-hover:translate-x-1 transition-transform" />
-                                </>
-                            )}
-                        </button>
-                    </form>
-
-                    <div className="mt-10 text-center">
-                        <p className="text-slate-400 font-semibold text-sm">
-                            Don't have an account? {' '}
-                            <Link to="/register" className="text-sky-400 hover:text-sky-300 font-black underline underline-offset-4 decoration-2">
-                                Sign Up
-                            </Link>
-                        </p>
+                    {/* Illustration */}
+                    <div className="rounded-3xl overflow-hidden border border-white/20 shadow-2xl">
+                        <img src={ctScanIllustration} alt="CT Scan AI Analysis" className="w-full h-auto" />
                     </div>
                 </div>
-            </motion.div>
+            </div>
+
+            {/* Right Panel — Form */}
+            <div className="flex-1 flex items-center justify-center p-8">
+                <motion.div
+                    initial={{ opacity: 0, x: 20 }}
+                    animate={{ opacity: 1, x: 0 }}
+                    transition={{ duration: 0.5, ease: 'easeOut' }}
+                    className="w-full max-w-md"
+                >
+                    {/* Mobile logo */}
+                    <div className="lg:hidden flex items-center gap-3 mb-8">
+                        <div className="w-10 h-10 rounded-xl flex items-center justify-center text-white"
+                            style={{ background: 'linear-gradient(135deg, #0EA5E9, #14B8A6)' }}>
+                            <Shield className="w-5 h-5" />
+                        </div>
+                        <div>
+                            <p className="font-black text-slate-900">PulmoScan</p>
+                            <p className="text-xs text-slate-500 font-semibold">AI Radiology</p>
+                        </div>
+                    </div>
+
+                    {/* Form card */}
+                    <div className="bg-white rounded-3xl p-8 shadow-xl border border-slate-100">
+                        <div className="mb-8">
+                            <h1 className="text-2xl font-black text-slate-900 mb-2">Welcome back</h1>
+                            <p className="text-slate-500 text-sm">Sign in to access your clinical AI dashboard</p>
+                        </div>
+
+                        <form onSubmit={handleSubmit} className="space-y-5">
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Email Address</label>
+                                <div className="relative">
+                                    <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type="email"
+                                        value={email}
+                                        onChange={(e) => setEmail(e.target.value)}
+                                        placeholder="doctor@hospital.com"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-11 pr-4 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:border-sky-400 transition-all"
+                                        style={{ '--tw-ring-color': 'rgba(14, 165, 233, 0.2)' }}
+                                        required
+                                    />
+                                </div>
+                            </div>
+
+                            <div>
+                                <label className="block text-xs font-bold text-slate-500 uppercase tracking-widest mb-2">Password</label>
+                                <div className="relative">
+                                    <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+                                    <input
+                                        type={showPassword ? 'text' : 'password'}
+                                        value={password}
+                                        onChange={(e) => setPassword(e.target.value)}
+                                        placeholder="••••••••"
+                                        className="w-full bg-slate-50 border border-slate-200 rounded-2xl py-3.5 pl-11 pr-12 text-sm text-slate-900 placeholder-slate-400 outline-none focus:ring-2 focus:border-sky-400 transition-all"
+                                        required
+                                    />
+                                    <button
+                                        type="button"
+                                        onClick={() => setShowPassword(!showPassword)}
+                                        className="absolute right-4 top-1/2 -translate-y-1/2 text-slate-400 hover:text-slate-600 transition-colors"
+                                    >
+                                        {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                                    </button>
+                                </div>
+                            </div>
+
+                            <button
+                                type="submit"
+                                disabled={isSubmitting}
+                                className="w-full text-white rounded-2xl py-4 font-bold text-sm flex items-center justify-center gap-2.5 transition-all disabled:opacity-70 disabled:cursor-not-allowed"
+                                style={{
+                                    background: isSubmitting ? '#94A3B8' : 'linear-gradient(135deg, #0EA5E9 0%, #0284C7 60%, #14B8A6 100%)',
+                                    boxShadow: isSubmitting ? 'none' : '0 8px 24px rgba(14, 165, 233, 0.35)',
+                                }}
+                            >
+                                {isSubmitting ? (
+                                    <><Loader2 className="w-4 h-4 animate-spin" /> Signing in...</>
+                                ) : (
+                                    <>Sign In <ArrowRight className="w-4 h-4" /></>
+                                )}
+                            </button>
+                        </form>
+
+                        <p className="mt-6 text-center text-sm text-slate-500">
+                            Don't have an account?{' '}
+                            <Link to="/register" className="text-sky-600 font-bold hover:text-sky-700 transition-colors">
+                                Create account
+                            </Link>
+                        </p>
+
+                        {/* Security note */}
+                        <div className="mt-6 flex items-center gap-2 px-4 py-3 bg-slate-50 rounded-2xl border border-slate-100">
+                            <Shield className="w-4 h-4 text-slate-400 shrink-0" />
+                            <p className="text-xs text-slate-400">Secured with JWT authentication. Clinical use only.</p>
+                        </div>
+                    </div>
+                </motion.div>
+            </div>
         </div>
     );
 };

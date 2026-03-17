@@ -15,7 +15,7 @@ import {
   FileText,
 } from 'lucide-react';
 import { formatConfidence } from '../utils/format';
-import { cn } from '../utils/cn';
+import { cn } from '@/lib/utils';
 
 export default function PatientDetails() {
   const { id } = useParams();

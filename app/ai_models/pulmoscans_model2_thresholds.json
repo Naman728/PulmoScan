@@ -1,0 +1,6 @@
+{
+  "Normal": 0.5,
+  "Pneumonia": 0.5,
+  "Tuberculosis": 0.5,
+  "Covid": 0.5
+}

@@ -1,16 +1,18 @@
 import React from 'react';
-import PulmoScanIcon from './PulmoScanIcon';
+import { Brain } from 'lucide-react';
 
-/** Full logo for header: icon + wordmark. */
-export default function PulmoScanLogo({ showTagline = false, className = '' }) {
+export function PulmoScanLogo({ showTagline = false, className = '' }) {
   return (
     <div className={`flex items-center gap-3 ${className}`}>
-      <PulmoScanIcon className="w-9 h-9 shrink-0" />
+      <div
+        className="w-9 h-9 rounded-xl flex items-center justify-center shrink-0"
+        style={{ background: 'linear-gradient(135deg, #0EA5E9 0%, #14B8A6 100%)', boxShadow: '0 4px 12px rgba(14,165,233,0.3)' }}
+      >
+        <Brain className="w-5 h-5 text-white" />
+      </div>
       <div>
-        <span className="text-lg font-bold text-white tracking-tight">PULMOSCAN</span>
-        {showTagline && (
-          <p className="text-xs text-slate-400 mt-0.5">AI Diagnostic Platform</p>
-        )}
+        <p className="font-black text-slate-900 leading-none text-base" style={{ fontWeight: 800 }}>PulmoScan</p>
+        {showTagline && <p className="text-[10px] font-semibold text-slate-400 uppercase tracking-widest mt-0.5">AI Radiology</p>}
       </div>
     </div>
   );

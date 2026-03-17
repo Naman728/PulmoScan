@@ -24,3 +24,5 @@ class PatientModel(Base):
     predictions = relationship("Prediction", back_populates="patient", cascade="all, delete-orphan")
 
     x_rays = relationship("XRay", back_populates="patient", cascade="all, delete-orphan")
+
+    reports = relationship("Report", back_populates="patient", cascade="all, delete-orphan")

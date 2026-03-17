@@ -13,7 +13,7 @@ import {
     X,
     ShieldCheck,
 } from 'lucide-react';
-import { cn } from '../utils/cn';
+import { cn } from '@/lib/utils';
 import { formatConfidence } from '../utils/format';
 import toast from 'react-hot-toast';
 
@@ -58,6 +58,7 @@ const AIPredict = () => {
         setCtResult(null);
         try {
             const data = await aiPredictionService.predictCTScan(ctFile);
+            console.log('CT Analysis Response:', data);
             setCtResult(data);
             toast.success('CT scan analysis complete');
         } catch (err) {

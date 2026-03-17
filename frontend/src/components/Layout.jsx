@@ -2,25 +2,23 @@ import React from 'react';
 import { Outlet } from 'react-router-dom';
 import Sidebar from './Sidebar';
 import Header from './Header';
-import BackgroundPatterns from './patterns/BackgroundPatterns';
 
+/**
+ * App layout: Sidebar + Topbar (Header) + MainContent (Outlet for nested routes).
+ * All authenticated routes render inside this layout so sidebar navigation is always visible.
+ */
 const Layout = () => {
   return (
-    <div className="flex min-h-screen bg-[var(--bg-deep)] text-slate-100 relative">
-      <BackgroundPatterns />
+    <div className="flex min-h-screen relative" style={{ background: 'linear-gradient(135deg, #F0F9FF 0%, #E0F2FE 30%, #ECFDF5 70%, #F0FDF4 100%)' }}>
       <Sidebar />
-      <div className="flex-1 ml-56 min-w-0 relative z-10">
+      <div className="flex-1 ml-64 min-w-0 relative">
         <Header />
-        <main className="pt-16 px-6 py-8 md:px-8 md:py-10 max-w-[1600px] mx-auto">
-          <Outlet />
+        <main className="pt-16">
+          <div className="px-6 py-8 max-w-[1600px] mx-auto w-full">
+            <Outlet />
+          </div>
         </main>
       </div>
-      <style>{`
-        .custom-scrollbar::-webkit-scrollbar { width: 8px; }
-        .custom-scrollbar::-webkit-scrollbar-track { background: rgba(15, 23, 42, 0.8); }
-        .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(71, 85, 105, 0.6); border-radius: 4px; }
-        .custom-scrollbar::-webkit-scrollbar-thumb:hover { background: rgba(100, 116, 139, 0.7); }
-      `}</style>
     </div>
   );
 };

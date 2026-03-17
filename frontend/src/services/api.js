@@ -1,6 +1,6 @@
 import axios from 'axios';
 
-const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
 
 const api = axios.create({
     baseURL: API_BASE_URL,
@@ -94,8 +94,6 @@ export const patientService = {
 
 export const scanService = {
     createCTScan: async (scanData) => {
-        // Current backend schema expects a file_path string, not an actual file upload
-        // I'll simulate a mock file upload by getting a fake path if no real upload exists.
         const response = await api.post('/ct-scans/', scanData);
         return response.data;
     },
@@ -147,6 +145,21 @@ export const aiPredictionService = {
     },
 };
 
+export const reportService = {
+    getAll: async () => {
+        const response = await api.get('/reports/');
+        return response.data;
+    },
+    getPatientReports: async (patientId) => {
+        const response = await api.get(`/reports/patient/${patientId}`);
+        return response.data;
+    },
+    saveReport: async (body) => {
+        const response = await api.post('/reports/save', body);
+        return response.data;
+    },
+};
+
 export const predictionService = {
     create: async (predictionData) => {
         const response = await api.post('/predictions/', predictionData);
@@ -166,6 +179,10 @@ export const predictionService = {
     getAll: async () => {
         const response = await api.get('/predictions/');
         return response.data;
+    },
+
+    delete: async (id) => {
+        await api.delete(`/predictions/${id}`);
     },
 };
 

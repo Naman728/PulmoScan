@@ -14,7 +14,7 @@ import {
     Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
-import { cn } from '../utils/cn';
+import { cn } from '@/lib/utils';
 import toast from 'react-hot-toast';
 
 const AddPatient = () => {

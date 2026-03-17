@@ -1,6 +1,5 @@
-import { clsx } from 'clsx';
-import { twMerge } from 'tailwind-merge';
-
-export function cn(...inputs) {
-    return twMerge(clsx(inputs));
-}
+/**
+ * @deprecated Use import { cn } from '@/lib/utils' instead.
+ * Re-export for backward compatibility.
+ */
+export { cn } from '@/lib/utils';

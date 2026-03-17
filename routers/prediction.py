@@ -1,8 +1,9 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from sqlalchemy.orm import Session
 from database import get_db
-from MODELS.PredictionModel import Prediction
 from MODELS.PatientModel import PatientModel
+from MODELS.PredictionModel import Prediction
+from MODELS.ReportModel import Report
 from SCHEMAS.PredictionModel import PredictionCreate, PredictionResponse
 from oauth import get_current_user
 from typing import List
@@ -43,6 +44,19 @@ def create_prediction(
 
     new_prediction = Prediction(**prediction.dict())
     db.add(new_prediction)
+    db.flush()
+    mo = prediction.model_outputs or {}
+    scan_type = "X-Ray" if (mo.get("scan_type") or "").lower() in ("xray", "x-ray") else "CT"
+    image_path = mo.get("image_path") if isinstance(mo, dict) else None
+    report = Report(
+        patient_id=prediction.patient_id,
+        prediction_id=new_prediction.id,
+        scan_type=scan_type,
+        diagnosis=prediction.final_diagnosis,
+        confidence=prediction.confidence,
+        image_path=image_path,
+    )
+    db.add(report)
     db.commit()
     db.refresh(new_prediction)
 

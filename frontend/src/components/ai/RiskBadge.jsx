@@ -1,38 +1,54 @@
 import React from 'react';
 import { motion } from 'framer-motion';
-import { cn } from '../../utils/cn';
+import { cn } from '@/lib/utils';
 
 const RISK_STYLES = {
-  High: 'bg-red-500/20 text-red-400 border-red-500/40',
-  Medium: 'bg-amber-500/20 text-amber-400 border-amber-500/40',
-  Low: 'bg-emerald-500/20 text-emerald-400 border-emerald-500/40',
+  High: {
+    outer: 'bg-rose-50 border-rose-200',
+    badge: 'bg-rose-100 text-rose-700 border-rose-200',
+    dot: 'bg-rose-500',
+    label: 'text-rose-600',
+  },
+  Medium: {
+    outer: 'bg-amber-50 border-amber-200',
+    badge: 'bg-amber-100 text-amber-700 border-amber-200',
+    dot: 'bg-amber-500',
+    label: 'text-amber-600',
+  },
+  Low: {
+    outer: 'bg-teal-50 border-teal-200',
+    badge: 'bg-teal-100 text-teal-700 border-teal-200',
+    dot: 'bg-teal-500',
+    label: 'text-teal-600',
+  },
 };
 
 /**
- * Risk level indicator: LOW (green), MODERATE (yellow), HIGH (red).
+ * Risk level indicator — updated for PulmoScan design.
  */
 export default function RiskBadge({ level, label = 'Risk Level', className }) {
   const normalized = (level || '—').toString().toLowerCase();
   const key = normalized.includes('high') ? 'High' : normalized.includes('medium') || normalized.includes('moderate') ? 'Medium' : 'Low';
   const display = level && level !== '—'
-    ? (key === 'Medium' ? 'MODERATE' : key.toUpperCase())
+    ? (key === 'Medium' ? 'Moderate' : key)
     : '—';
+
+  const styles = RISK_STYLES[key] ?? RISK_STYLES.Low;
 
   return (
     <div className={cn('space-y-1', className)}>
       {label && (
-        <p className="text-xs font-semibold text-slate-400 uppercase tracking-wider">{label}</p>
+        <p className="text-[10px] font-bold text-slate-400 uppercase tracking-wider">{label}</p>
       )}
-      <motion.span
+      <motion.div
         initial={{ opacity: 0, scale: 0.9 }}
         animate={{ opacity: 1, scale: 1 }}
-        className={cn(
-          'inline-block px-4 py-2 rounded-lg text-sm font-bold border uppercase tracking-wider',
-          RISK_STYLES[key] ?? 'bg-slate-500/20 text-slate-400 border-slate-500/40'
-        )}
+        transition={{ duration: 0.3 }}
+        className={cn('inline-flex items-center gap-2 px-4 py-2 rounded-2xl border text-sm font-bold', styles.outer)}
       >
-        {display}
-      </motion.span>
+        <span className={cn('w-2.5 h-2.5 rounded-full shrink-0', styles.dot)} />
+        <span className={styles.label}>{display} Risk</span>
+      </motion.div>
     </div>
   );
 }
