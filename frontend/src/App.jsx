@@ -18,6 +18,8 @@ import Settings from './pages/Settings'
 import ScanUploadPage from './pages/workflow/ScanUploadPage'
 import ProcessingPage from './pages/workflow/ProcessingPage'
 import ScanResultsPage from './pages/workflow/ScanResultsPage'
+import SingleModelAnalysisPage from './pages/analysis/SingleModelAnalysisPage'
+import { ScanLine, Brain, ImageIcon } from 'lucide-react'
 import ErrorBoundary from './components/ErrorBoundary'
 
 const ProtectedRoute = ({ children }) => {
@@ -54,7 +56,10 @@ const App = () => {
             <Route path="predictions/:id" element={<PredictionResult />} />
             <Route path="reports" element={<PredictionsList />} />
             <Route path="reports-list" element={<Navigate to="/reports" replace />} />
-            <Route path="ai-predict" element={<Navigate to="/upload-scan" replace />} />
+            <Route path="ct-analysis" element={<SingleModelAnalysisPage modelType="ct" title="CT Scan" subtitle="Lung & region analysis" Icon={ScanLine} conditionsLabel="Regions & features" />} />
+            <Route path="brain-analysis" element={<SingleModelAnalysisPage modelType="brain" title="Brain Analysis" subtitle="Tumor & brain regions" Icon={Brain} conditionsLabel="Brain regions" />} />
+            <Route path="xray-analysis" element={<SingleModelAnalysisPage modelType="xray" title="X-ray Analysis" subtitle="Disease list & risk" Icon={ImageIcon} conditionsLabel="Disease list" />} />
+            <Route path="ai-predict" element={<Navigate to="/ct-analysis" replace />} />
             <Route path="ai-workflow" element={<Navigate to="/upload-scan" replace />} />
             <Route path="settings" element={<Settings />} />
             {/* CT workflow: same Layout so sidebar/topbar always visible */}

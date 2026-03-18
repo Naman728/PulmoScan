@@ -31,12 +31,14 @@ Base.metadata.create_all(bind=engine)
 
 @app.on_event("startup")
 def startup_load_models():
-    """Load AI models once at server startup (singleton)."""
+    """AI models load lazily on first request (singleton cache). No eager load to avoid TF/PyTorch at startup."""
+    print("PulmoScan backend started (main.py). GET /ai/health, POST /ai/predict?model_type=ct|brain|xray")
     try:
         from app.ai_models import model_loader
-        ct_ok = model_loader.is_ct_loaded()
-        xray_ok = model_loader.is_xray_loaded()
-        logger.info("AI models at startup: CT=%s, X-Ray=%s", ct_ok, xray_ok)
+        logger.info(
+            "AI models: CT/Brain/X-Ray will load on first use (lazy). "
+            "Available: ct, brain, xray via /ai/predict?model_type=..."
+        )
     except Exception as e:
         logger.warning("Model loader import at startup: %s", e)
 
@@ -53,4 +55,5 @@ app.include_router(ct_scan.router)
 app.include_router(patient.router)
 app.include_router(prediction.router)
 app.include_router(report.router)
+# AI predictions: router has prefix="/ai" -> POST /ai/predict?model_type=ct|brain|xray
 app.include_router(ai_prediction.router)

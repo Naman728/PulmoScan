@@ -1,14 +1,134 @@
 """
-Grad-CAM explainability for PyTorch CT model.
+Grad-CAM explainability for PyTorch (CT/Brain) and Keras/TensorFlow (X-ray) models.
 Generates heatmap and overlay; does not modify the model or prediction pipeline.
 """
 import logging
 import os
+import traceback
 from typing import Optional, Tuple
 
 import numpy as np
 
 logger = logging.getLogger(__name__)
+DEBUG_SAVE_HEATMAP = os.environ.get("PULMOSCAN_DEBUG_HEATMAP", "").lower() in ("1", "true", "yes")
+
+
+# ---------------------------------------------------------------------------
+# Keras/TensorFlow Grad-CAM (X-ray InceptionResNetV2)
+# ---------------------------------------------------------------------------
+
+def run_gradcam_keras(
+    model,
+    image_batch: np.ndarray,
+    target_class_idx: int,
+) -> Tuple[Optional[np.ndarray], Optional[np.ndarray]]:
+    """
+    Grad-CAM for Keras/TensorFlow models (e.g. X-ray InceptionResNetV2).
+    image_batch: (1, H, W, 3) numpy array, preprocessed as model expects.
+    target_class_idx: class index for which to generate the heatmap.
+    Returns (heatmap_2d, None) as numpy array resized to (H, W), or (None, None) on failure.
+    """
+    if model is None or image_batch is None or image_batch.size == 0:
+        return None, None
+    try:
+        import tensorflow as tf
+    except ImportError:
+        logger.warning("Grad-CAM Keras skipped: tensorflow not available")
+        return None, None
+
+    try:
+        # Find last Conv2D layer (InceptionResNetV2 and similar)
+        Conv2D = getattr(tf.keras.layers, "Conv2D", None)
+        if Conv2D is None:
+            Conv2D = getattr(tf.keras.layers, "Convolution2D", None)
+        last_conv_layer = None
+        for layer in reversed(model.layers):
+            if Conv2D is not None and isinstance(layer, Conv2D):
+                last_conv_layer = layer
+                break
+            if last_conv_layer is None and hasattr(layer, "output_shape"):
+                out = layer.output_shape
+                if isinstance(out, (list, tuple)):
+                    out = out[0] if out else None
+                if out is not None and len(out) == 4 and "conv" in layer.name.lower():
+                    last_conv_layer = layer
+                    break
+        if last_conv_layer is None:
+            logger.error("No valid conv layer found for Grad-CAM (Keras)")
+            return None, None
+
+        logger.info("Using conv layer: %s", last_conv_layer.name)
+
+        # Build model that outputs (conv_output, logits)
+        grad_model = tf.keras.models.Model(
+            inputs=model.input,
+            outputs=[last_conv_layer.output, model.output],
+        )
+
+        img = tf.convert_to_tensor(image_batch, dtype=tf.float32)
+        with tf.GradientTape() as tape:
+            tape.watch(img)
+            conv_output, preds = grad_model(img)
+            if isinstance(preds, (list, tuple)):
+                preds = preds[0]
+            class_output = preds[0, target_class_idx]
+
+        grads = tape.gradient(class_output, conv_output)
+        if grads is None:
+            logger.warning("Gradients are None or zero → Grad-CAM cannot work (Keras)")
+            return None, None
+        g_np = grads.numpy() if hasattr(grads, "numpy") else None
+        if g_np is not None and np.allclose(g_np, 0):
+            logger.warning("Gradients are None or zero → Grad-CAM cannot work (Keras)")
+            return None, None
+        logger.info("Gradients computed successfully (Keras)")
+
+        # Global average pooling of gradients -> weights per channel
+        weights = tf.reduce_mean(grads, axis=(0, 1, 2))
+        # Weighted combination of activation maps
+        cam = tf.reduce_sum(weights * conv_output[0], axis=-1)
+        cam = tf.nn.relu(cam)
+        cam = cam.numpy()
+        cam = np.maximum(cam, 0)
+        if cam.size == 0:
+            return None, None
+        if cam.max() > 0:
+            cam = cam / (cam.max() + 1e-8)
+
+        # Resize to original image size (image_batch is 1, H, W, 3)
+        target_h, target_w = int(image_batch.shape[1]), int(image_batch.shape[2])
+        if cam.shape[0] != target_h or cam.shape[1] != target_w:
+            from PIL import Image
+            cam_uint8 = np.uint8(255 * np.clip(cam, 0, 1))
+            pil = Image.fromarray(cam_uint8)
+            pil = pil.resize((target_w, target_h), Image.BILINEAR)
+            heatmap = np.array(pil, dtype=np.float64) / 255.0
+        else:
+            heatmap = cam
+        hm_min = float(np.min(heatmap)) if heatmap.size else 0
+        hm_max = float(np.max(heatmap)) if heatmap.size else 0
+        logger.info("Heatmap min/max values: %s, %s", hm_min, hm_max)
+        logger.info("Heatmap shape: %s", heatmap.shape if hasattr(heatmap, "shape") else None)
+        if heatmap.size > 0 and np.allclose(heatmap, 0):
+            logger.warning("Heatmap is blank (all zeros)")
+        if DEBUG_SAVE_HEATMAP and heatmap is not None and heatmap.size > 0:
+            try:
+                from PIL import Image as PILImage
+                out_path = os.path.join(os.path.dirname(__file__), "debug_heatmap_keras.png")
+                PILImage.fromarray(np.uint8(255 * np.clip(heatmap, 0, 1))).save(out_path)
+                logger.info("Debug: saved heatmap to %s", out_path)
+            except Exception as ex:
+                logger.debug("Debug save heatmap failed: %s", ex)
+        return heatmap, None
+    except Exception as e:
+        logger.warning("Grad-CAM Keras failed (no crash): %s", e)
+        logger.error("Full traceback:\n%s", traceback.format_exc())
+        return None, None
+
+
+# ---------------------------------------------------------------------------
+# PyTorch Grad-CAM (CT / Brain)
+# ---------------------------------------------------------------------------
 
 
 def run_gradcam(
@@ -43,9 +163,9 @@ def run_gradcam(
                         target_layer = module
                         break
         if target_layer is None:
-            logger.error("Grad-CAM failed: no convolutional layer found")
+            logger.error("No valid conv layer found for Grad-CAM (PyTorch)")
             return None, None
-        logger.info("GradCAM using layer: %s", target_layer)
+        logger.info("Using conv layer: %s", target_layer)
 
         saved_activation = []
         saved_grad = []
@@ -76,10 +196,15 @@ def run_gradcam(
             score.backward()
 
             if not saved_activation or not saved_grad:
+                logger.warning("Gradients are None or zero → Grad-CAM cannot work (PyTorch, no activation/grad)")
                 return None, None
 
             activation = saved_activation[0]
             grad = saved_grad[0]
+            if grad is not None and torch.is_tensor(grad) and grad.numel() > 0 and grad.abs().max().item() == 0:
+                logger.warning("Gradients are None or zero → Grad-CAM cannot work (PyTorch)")
+                return None, None
+            logger.info("Gradients computed successfully (PyTorch)")
             weights = grad.mean(dim=(2, 3))
             cam = (weights.unsqueeze(-1).unsqueeze(-1) * activation).sum(dim=1)
             cam = torch.relu(cam)
@@ -96,12 +221,33 @@ def run_gradcam(
                 heatmap = np.array(cam_pil)
             except Exception:
                 heatmap = np.uint8(255 * cam)
+            hm_arr = np.asarray(heatmap, dtype=np.float64)
+            if hm_arr.ndim == 3:
+                hm_arr = hm_arr.mean(axis=-1)
+            hm_min = float(np.min(hm_arr)) if hm_arr.size else 0
+            hm_max = float(np.max(hm_arr)) if hm_arr.size else 0
+            logger.info("Heatmap min/max values: %s, %s", hm_min, hm_max)
+            logger.info("Heatmap shape: %s", heatmap.shape if hasattr(heatmap, "shape") else None)
+            if hm_arr.size > 0 and np.allclose(hm_arr, 0):
+                logger.warning("Heatmap is blank (all zeros)")
+            if DEBUG_SAVE_HEATMAP and heatmap is not None and np.asarray(heatmap).size > 0:
+                try:
+                    from PIL import Image as PILImage
+                    out_path = os.path.join(os.path.dirname(__file__), "debug_heatmap_pytorch.png")
+                    h = np.asarray(heatmap)
+                    if h.ndim == 3:
+                        h = h[:, :, 0]
+                    PILImage.fromarray(np.uint8(h)).save(out_path)
+                    logger.info("Debug: saved heatmap to %s", out_path)
+                except Exception as ex:
+                    logger.debug("Debug save heatmap failed: %s", ex)
             return heatmap, None
         finally:
             handle_f.remove()
             handle_b.remove()
     except Exception as e:
-        logger.error("Grad-CAM failed: %s", e)
+        logger.warning("Grad-CAM failed (no crash): %s", e)
+        logger.error("Full traceback:\n%s", traceback.format_exc())
         return None, None
 
 

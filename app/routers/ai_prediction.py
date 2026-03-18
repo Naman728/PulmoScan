@@ -7,12 +7,12 @@ import tempfile
 import uuid
 from typing import List, Optional
 
-from fastapi import APIRouter, UploadFile, File, HTTPException
+from fastapi import APIRouter, UploadFile, File, HTTPException, Query
 from logging import getLogger
 
-from app.ai_models.predict import predict_ct_scan_multi, predict_xray
+from app.ai_models.predict import predict_ct_scan_multi, predict_xray, predict, VALID_MODEL_TYPES
 
-logger = getLogger(__name__) 
+logger = getLogger(__name__)
 router = APIRouter(prefix="/ai", tags=["AI Predictions"])
 
 
@@ -45,6 +45,86 @@ def _validate_file(file: UploadFile, max_size_mb: float = MAX_FILE_SIZE_MB) -> O
     if file.size is not None and file.size > max_size_mb * 1024 * 1024:
         return f"File too large. Max {max_size_mb} MB."
     return None
+
+
+# ---------------------------------------------------------------------------
+# Health check for frontend/ops: verify /ai routes are reachable
+# ---------------------------------------------------------------------------
+
+@router.get("/health")
+async def ai_health():
+    """Verify AI router is mounted. Returns 200 when /ai is reachable."""
+    return {"status": "ok", "endpoint": "/ai/predict", "model_types": list(VALID_MODEL_TYPES)}
+
+
+# ---------------------------------------------------------------------------
+# Unified predict: single image + model_type (ct | brain | xray)
+# ---------------------------------------------------------------------------
+
+@router.post("/predict")
+async def predict_unified_endpoint(
+    file: UploadFile = File(..., description="Image file"),
+    model_type: str = Query("ct", description="Model to use: ct, brain, or xray"),
+):
+    """
+    Unified prediction: one image, one model type.
+    Example: POST /ai/predict?model_type=xray with multipart file.
+    Returns: { "model": str, "prediction": str, "confidence": float, ... }.
+    """
+    model_type = (model_type or "ct").strip().lower()
+    logger.info("Request received: POST /ai/predict model_type=%s filename=%s", model_type, file.filename or "")
+    if model_type not in VALID_MODEL_TYPES:
+        logger.warning("Invalid model_type=%r; valid are %s", model_type, sorted(VALID_MODEL_TYPES))
+        raise HTTPException(
+            status_code=400,
+            detail=f"Invalid model_type '{model_type}'. Use one of: {', '.join(sorted(VALID_MODEL_TYPES))}",
+        )
+    if not _is_image_content_type(file.content_type or ""):
+        raise HTTPException(status_code=400, detail="File must be an image")
+    err = _validate_file(file)
+    if err:
+        raise HTTPException(status_code=400, detail=err)
+    path = None
+    try:
+        path = _save_upload(file)
+        result = predict(model_type, path, output_dir=None)
+        # Production response: strict format + backward compatibility
+        out = {
+            "model": result.get("model", model_type),
+            "prediction": result.get("prediction", ""),
+            "top_prediction": result.get("top_prediction", result.get("prediction", "")),
+            "confidence": float(result.get("confidence", 0.0)),
+            "confidence_level": result.get("confidence_level", "Low"),
+            "all_predictions": result.get("all_predictions") or [],
+            "heatmap": result.get("heatmap"),
+            "attention_region": result.get("attention_region", "Not available"),
+            "analysis": result.get("analysis") or "",
+            "meta": result.get("meta") or {
+                "inference_time_ms": 0,
+                "model_version": "v1.0",
+                "input_shape": "—",
+            },
+            "conditions": result.get("conditions") or [],
+        }
+        if result.get("error"):
+            out["error"] = result["error"]
+        return out
+    except HTTPException:
+        raise
+    except Exception as e:
+        logger.exception("Unified predict failed: %s", e)
+        return {
+            "model": model_type,
+            "prediction": f"Error: {str(e)}",
+            "confidence": 0.0,
+            "error": "prediction_failed",
+        }
+    finally:
+        if path and os.path.isfile(path):
+            try:
+                os.remove(path)
+            except OSError:
+                pass
 
 
 @router.post("/predict/ctscan")

@@ -1,9 +1,14 @@
 import axios from 'axios';
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL || 'http://localhost:8000';
+// Falsy or empty env → request would hit Vite dev server → 404. Always use explicit backend URL.
+const _raw = (import.meta.env.VITE_API_URL ?? '').trim();
+export const API_BASE_URL = _raw || 'http://localhost:8000';
+if (typeof window !== 'undefined') {
+    console.log('[PulmoScan] API_BASE_URL =', API_BASE_URL, _raw ? '(from env)' : '(fallback)');
+}
 
 const api = axios.create({
-    baseURL: API_BASE_URL,
+    baseURL: API_BASE_URL.replace(/\/$/, ''),
     headers: {
         'Content-Type': 'application/json',
     },
@@ -29,9 +34,14 @@ api.interceptors.response.use(
     (response) => response,
     (error) => {
         const status = error.response?.status;
-        const url = error.config?.url != null ? `${error.config.baseURL || ''}${error.config.url}` : 'unknown';
+        const base = error.config?.baseURL ?? '';
+        const path = error.config?.url ?? '';
+        const url = (base + path).replace(/([^:/])\/+/g, '$1/');
         const detail = error.response?.data?.detail ?? error.message;
         console.error('[PulmoScan API]', status ?? 'NETWORK_ERR', url, detail);
+        if (status === 404) {
+            console.error('[PulmoScan] 404 → Request reached a server but route not found. Check: (1) Backend is uvicorn main:app from project root (2) GET', base || API_BASE_URL, '+ /ai/health returns 200');
+        }
         if (status === 401) {
             localStorage.removeItem('token');
             window.dispatchEvent(new CustomEvent('auth:session-expired'));
@@ -141,6 +151,23 @@ export const aiPredictionService = {
         const formData = new FormData();
         formData.append('file', file);
         const response = await api.post('/ai/predict/xray', formData);
+        return response.data;
+    },
+
+    /**
+     * Unified predict: one image, one model type (ct | brain | xray).
+     * Full URL: {API_BASE_URL}/ai/predict?model_type=ct|brain|xray
+     * Returns { model, prediction, confidence, conditions?, error? }.
+     */
+    predictUnified: async (file, modelType = 'ct') => {
+        const formData = new FormData();
+        formData.append('file', file);
+        const model = String(modelType).toLowerCase();
+        const fullUrl = `${API_BASE_URL.replace(/\/$/, '')}/ai/predict?model_type=${model}`;
+        console.log('[PulmoScan] predictUnified →', fullUrl);
+        const response = await api.post('/ai/predict', formData, {
+            params: { model_type: model },
+        });
         return response.data;
     },
 };
