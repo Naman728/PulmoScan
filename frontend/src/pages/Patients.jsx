@@ -1,9 +1,15 @@
 import React, { useState, useMemo } from 'react';
 import { useQuery } from '@tanstack/react-query';
 import { useNavigate } from 'react-router-dom';
+import { motion } from 'framer-motion';
 import { patientService } from '../services/api';
-import { Users, Search, Plus, Loader2, AlertCircle, ChevronRight } from 'lucide-react';
+import { Users, Search, Plus, Loader2, AlertCircle, ChevronRight, Brain } from 'lucide-react';
 import { EmptyStatePatients } from '../components/illustrations';
+
+const cardVariants = {
+  hidden: { opacity: 0, y: 16 },
+  visible: (i) => ({ opacity: 1, y: 0, transition: { delay: i * 0.07, duration: 0.4, ease: 'easeOut' } }),
+};
 
 export default function Patients() {
   const navigate = useNavigate();
@@ -30,8 +36,11 @@ export default function Patients() {
   if (isLoading) {
     return (
       <div className="flex flex-col items-center justify-center py-24">
-        <Loader2 className="w-10 h-10 text-sky-400 animate-spin" />
-        <p className="mt-4 text-sm text-slate-400">Loading patients...</p>
+        <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
+          style={{ background: 'linear-gradient(135deg, #7C3AED, #06B6D4)', boxShadow: '0 8px 24px rgba(124,58,237,0.3)' }}>
+          <Brain className="w-6 h-6 text-white animate-pulse" />
+        </div>
+        <p className="text-sm text-gray-500">Loading patients...</p>
       </div>
     );
   }
@@ -39,13 +48,13 @@ export default function Patients() {
   if (isError) {
     return (
       <div className="flex flex-col items-center justify-center py-24 text-center">
-        <AlertCircle className="w-12 h-12 text-red-400" />
-        <h2 className="mt-4 text-lg font-semibold text-white">Failed to load patients</h2>
-        <p className="mt-2 text-sm text-slate-400 max-w-sm">Check the browser console for API errors. Ensure the backend is running.</p>
+        <AlertCircle className="w-12 h-12 text-rose-400" />
+        <h2 className="mt-4 text-lg font-semibold text-gray-200">Failed to load patients</h2>
+        <p className="mt-2 text-sm text-gray-500 max-w-sm">Check the browser console for API errors. Ensure the backend is running.</p>
         <button
           type="button"
           onClick={() => refetch()}
-          className="mt-4 px-4 py-2 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-400"
+          className="mt-4 ps-btn-primary text-sm"
         >
           Retry
         </button>
@@ -54,61 +63,86 @@ export default function Patients() {
   }
 
   return (
-    <div className="space-y-6">
-      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4">
+    <div className="space-y-6 relative pb-12">
+      {/* Ambient background glows for depth */}
+      <div className="absolute top-[-100px] left-[-200px] w-[500px] h-[500px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      <div className="absolute top-[20%] right-[-100px] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
+
+      <motion.div
+        variants={cardVariants} initial="hidden" animate="visible" custom={0}
+        className="flex flex-col sm:flex-row sm:items-center justify-between gap-4"
+      >
         <div>
-          <h1 className="text-2xl font-bold text-white">Patients</h1>
-          <p className="text-slate-400 mt-1">Manage patient records.</p>
+          <h1 className="text-2xl font-bold text-white" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Patients</h1>
+          <p className="text-gray-500 mt-1">Manage patient records.</p>
         </div>
-        <button
+        <motion.button
+          whileHover={{ scale: 1.04 }}
+          whileTap={{ scale: 0.98 }}
           type="button"
           onClick={() => navigate('/patients/add')}
-          className="flex items-center gap-2 px-4 py-2.5 bg-sky-500 text-white rounded-xl font-medium hover:bg-sky-400"
+          className="ps-btn-primary text-sm"
         >
           <Plus className="w-5 h-5" /> New patient
-        </button>
-      </div>
+        </motion.button>
+      </motion.div>
 
-      <div className="flex flex-col sm:flex-row gap-4">
+      <motion.div variants={cardVariants} initial="hidden" animate="visible" custom={1} className="flex flex-col sm:flex-row gap-4">
         <div className="relative flex-1">
-          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400" />
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600" />
           <input
             type="search"
             placeholder="Search by name, gender, or ID..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full pl-10 pr-4 py-2.5 border border-slate-600 rounded-lg bg-slate-800/60 text-slate-200 placeholder-slate-500 text-sm focus:ring-2 focus:ring-sky-500/30"
+            className="w-full pl-10 pr-4 py-2.5 rounded-xl text-sm text-gray-200 placeholder-gray-600 outline-none transition-all"
+            style={{
+              background: 'rgba(255,255,255,0.04)',
+              border: '1px solid rgba(255,255,255,0.08)',
+            }}
+            onFocus={(e) => {
+              e.target.style.borderColor = 'rgba(124, 58, 237, 0.3)';
+              e.target.style.boxShadow = '0 0 0 3px rgba(124,58,237,0.08)';
+            }}
+            onBlur={(e) => {
+              e.target.style.borderColor = 'rgba(255,255,255,0.08)';
+              e.target.style.boxShadow = 'none';
+            }}
           />
         </div>
-      </div>
+      </motion.div>
 
       {!filtered.length ? (
-        <div className="glass-card border border-slate-700/50 rounded-xl py-16 text-center">
+        <motion.div variants={cardVariants} initial="hidden" animate="visible" custom={2}
+          className="rounded-2xl py-16 text-center"
+          style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
           <EmptyStatePatients className="w-24 h-24 mx-auto" />
-          <p className="mt-4 text-slate-400">
+          <p className="mt-4 text-gray-500">
             {search ? 'No patients match your search.' : 'No patients yet. Add a patient to get started.'}
           </p>
           {!search && (
             <button
               type="button"
               onClick={() => navigate('/patients/add')}
-              className="mt-4 px-4 py-2 bg-sky-500 text-white rounded-xl text-sm font-medium hover:bg-sky-400"
+              className="mt-4 ps-btn-primary text-sm"
             >
               Add patient
             </button>
           )}
-        </div>
+        </motion.div>
       ) : (
-        <div className="glass-card border border-slate-700/50 rounded-xl overflow-hidden">
+        <motion.div variants={cardVariants} initial="hidden" animate="visible" custom={2}
+          className="rounded-[24px] overflow-hidden backdrop-blur-xl"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.05)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 30px rgba(0,0,0,0.4)' }}>
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-slate-700/50 bg-slate-800/30">
-                  <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Patient name</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">ID</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Age</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Gender</th>
-                  <th className="px-6 py-3 text-xs font-semibold text-slate-400 uppercase tracking-wider">Registered</th>
+                <tr className="border-b" style={{ borderColor: 'rgba(255,255,255,0.05)', background: 'rgba(255,255,255,0.01)' }}>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Patient name</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">ID</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Age</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Gender</th>
+                  <th className="px-6 py-3 text-xs font-semibold text-gray-600 uppercase tracking-wider">Registered</th>
                   <th className="px-6 py-3 w-10" />
                 </tr>
               </thead>
@@ -117,22 +151,30 @@ export default function Patients() {
                   <tr
                     key={p.id}
                     onClick={() => navigate(`/patients/${p.id}`)}
-                    className="border-b border-slate-800/50 hover:bg-slate-800/40 cursor-pointer transition-colors"
+                    className="border-b border-white/4 hover:bg-purple-500/4 cursor-pointer transition-colors"
                   >
-                    <td className="px-6 py-4 font-medium text-white">{p.name}</td>
-                    <td className="px-6 py-4 text-sm text-slate-400">#{String(p.id).padStart(4, '0')}</td>
-                    <td className="px-6 py-4 text-sm text-slate-400">{p.age ?? '—'}</td>
-                    <td className="px-6 py-4 text-sm text-slate-400">{p.gender ?? '—'}</td>
-                    <td className="px-6 py-4 text-sm text-slate-500">{new Date(p.created_at).toLocaleDateString()}</td>
                     <td className="px-6 py-4">
-                      <ChevronRight className="w-4 h-4 text-slate-500" />
+                      <div className="flex items-center gap-3">
+                        <div className="w-8 h-8 rounded-lg flex items-center justify-center text-xs font-bold text-purple-300"
+                          style={{ background: 'rgba(124,58,237,0.12)' }}>
+                          {p.name?.charAt(0)?.toUpperCase() ?? '?'}
+                        </div>
+                        <span className="font-medium text-gray-200">{p.name}</span>
+                      </div>
+                    </td>
+                    <td className="px-6 py-4 text-sm text-gray-500">#{String(p.id).padStart(4, '0')}</td>
+                    <td className="px-6 py-4 text-sm text-gray-400">{p.age ?? '—'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-400">{p.gender ?? '—'}</td>
+                    <td className="px-6 py-4 text-sm text-gray-600">{new Date(p.created_at).toLocaleDateString()}</td>
+                    <td className="px-6 py-4">
+                      <ChevronRight className="w-4 h-4 text-gray-700" />
                     </td>
                   </tr>
                 ))}
               </tbody>
             </table>
           </div>
-        </div>
+        </motion.div>
       )}
     </div>
   );

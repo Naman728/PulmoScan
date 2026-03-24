@@ -72,8 +72,12 @@ export default function ProcessingPage() {
     }, [files, patientInfo, scanType, navigate]);
 
     return (
-        <div className="min-h-screen bg-slate-50 flex flex-col items-center justify-center p-6 overflow-hidden">
-            <div className="max-w-2xl w-full text-center space-y-12">
+        <div className="min-h-screen flex flex-col items-center justify-center p-6 overflow-hidden relative">
+            
+            {/* Ambient Background Glow */}
+            <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[600px] bg-cyan-500 rounded-full blur-[150px] opacity-[0.05] pointer-events-none"></div>
+
+            <div className="max-w-xl w-full text-center space-y-12 relative z-10">
 
                 {/* Animated Brain/Scan Icon */}
                 <div className="relative flex items-center justify-center">
@@ -87,65 +91,72 @@ export default function ProcessingPage() {
                             repeat: Infinity,
                             ease: "easeInOut"
                         }}
-                        className="w-40 h-40 rounded-[40px] bg-gradient-to-br from-sky-500 to-teal-400 flex items-center justify-center shadow-2xl shadow-sky-500/30 relative z-10"
+                        className="w-40 h-40 rounded-[40px] flex items-center justify-center shadow-[0_0_50px_rgba(124,58,237,0.4)] relative z-10 border border-purple-500/30 backdrop-blur-3xl"
+                        style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.4), rgba(6, 182, 212, 0.4))' }}
                     >
-                        <Brain className="w-20 h-20 text-white" />
+                        <Brain className="w-20 h-20 text-white drop-shadow-[0_0_15px_rgba(255,255,255,0.8)]" />
                     </motion.div>
 
                     {/* Pulsing rings */}
-                    <div className="absolute inset-0 flex items-center justify-center">
+                    <div className="absolute inset-0 flex items-center justify-center pointer-events-none">
                         <motion.div
                             initial={{ scale: 1, opacity: 0.5 }}
                             animate={{ scale: 2.5, opacity: 0 }}
                             transition={{ duration: 3, repeat: Infinity }}
-                            className="w-40 h-40 rounded-full border-2 border-sky-400/30"
+                            className="w-40 h-40 rounded-full border-2 border-purple-400/40"
                         />
                         <motion.div
                             initial={{ scale: 1, opacity: 0.5 }}
                             animate={{ scale: 3.5, opacity: 0 }}
                             transition={{ duration: 4, repeat: Infinity, delay: 1 }}
-                            className="w-40 h-40 rounded-full border border-teal-400/20"
+                            className="w-40 h-40 rounded-full border border-cyan-400/30"
                         />
                     </div>
                 </div>
 
                 <div className="space-y-3">
-                    <h2 className="text-3xl font-black text-slate-900 tracking-tight">AI analyzing CT scan...</h2>
-                    <p className="text-slate-500 font-medium">Processing volumetric data through neural pipeline</p>
+                    <h2 className="text-3xl font-black text-white tracking-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>AI analyzing CT scan...</h2>
+                    <p className="text-gray-400 font-medium text-sm">Processing volumetric data through neural pipeline</p>
                 </div>
 
                 {/* Progress Steps */}
-                <div className="bg-white p-8 rounded-[32px] border border-slate-200 shadow-sm space-y-6 text-left relative z-10">
+                <div className="p-8 rounded-[32px] border shadow-2xl space-y-6 text-left relative z-10 backdrop-blur-xl" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
                     {STEPS.map((step, index) => {
                         const isCompleted = completedSteps.includes(step.id);
                         const isActive = currentStepIndex === index;
 
                         return (
-                            <div key={step.id} className="flex items-center gap-4 group">
+                            <div key={step.id} className="flex items-center gap-5 group">
                                 <div className="shrink-0">
                                     {isCompleted ? (
                                         <motion.div initial={{ scale: 0 }} animate={{ scale: 1 }}>
-                                            <CheckCircle2 className="w-6 h-6 text-emerald-500" />
+                                            <div className="w-8 h-8 rounded-full bg-emerald-500/20 flex items-center justify-center border border-emerald-500/30 text-emerald-400 shadow-[0_0_10px_rgba(16,185,129,0.2)]">
+                                              <CheckCircle2 className="w-5 h-5" />
+                                            </div>
                                         </motion.div>
                                     ) : isActive ? (
-                                        <Loader2 className="w-6 h-6 text-sky-500 animate-spin" />
+                                        <div className="w-8 h-8 rounded-full bg-cyan-500/10 flex items-center justify-center border border-cyan-500/30 shadow-[0_0_10px_rgba(6,182,212,0.2)]">
+                                          <Loader2 className="w-5 h-5 text-cyan-400 animate-spin" />
+                                        </div>
                                     ) : (
-                                        <div className="w-6 h-6 rounded-full border-2 border-slate-100" />
+                                        <div className="w-8 h-8 rounded-full border border-gray-700 bg-white/5" />
                                     )}
                                 </div>
                                 <div className="flex-1">
                                     <p className={cn(
-                                        "font-bold transition-all duration-300",
-                                        isCompleted ? "text-slate-400 line-through decoration-emerald-500/30" : isActive ? "text-slate-900" : "text-slate-300"
+                                        "font-bold transition-all duration-300 text-sm tracking-wide",
+                                        isCompleted ? "text-gray-500 line-through decoration-emerald-500/30" : isActive ? "text-white drop-shadow-[0_0_5px_rgba(255,255,255,0.3)]" : "text-gray-600"
                                     )}>
                                         {step.label}
                                     </p>
                                     {isActive && (
                                         <motion.div
                                             layoutId="active-bar"
-                                            className="h-1 bg-sky-500 rounded-full mt-2"
+                                            className="h-1 rounded-full mt-2.5 shadow-[0_0_8px_rgba(6,182,212,0.5)]"
+                                            style={{ background: 'linear-gradient(90deg, #7C3AED, #06B6D4)' }}
                                             initial={{ width: 0 }}
-                                            animate={{ width: '40%' }}
+                                            animate={{ width: '100%' }}
+                                            transition={{ duration: 1.5, ease: 'linear' }}
                                         />
                                     )}
                                 </div>
@@ -154,9 +165,9 @@ export default function ProcessingPage() {
                     })}
                 </div>
 
-                <div className="flex items-center justify-center gap-2 text-slate-400">
+                <div className="flex items-center justify-center gap-2 text-cyan-500 bg-cyan-900/10 inline-flex mx-auto px-4 py-2 rounded-full border border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.1)]">
                     <Scan className="w-4 h-4 animate-pulse" />
-                    <span className="text-[11px] font-bold uppercase tracking-widest">Neural Link Enabled</span>
+                    <span className="text-[10px] font-black uppercase tracking-widest text-cyan-400">Neural Link Established</span>
                 </div>
             </div>
         </div>

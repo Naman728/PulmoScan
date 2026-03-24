@@ -110,15 +110,19 @@ export default function PredictionsList() {
   const hasActiveFilters = search || filterRisk || filterDiagnosis || filterDateFrom || filterDateTo;
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 pb-12 relative">
+      {/* Ambient background glows for depth */}
+      <div className="absolute top-[10%] left-[-200px] w-[500px] h-[500px] bg-cyan-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+      <div className="absolute bottom-[20%] right-[-100px] w-[400px] h-[400px] bg-purple-600/10 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
+
       {/* Header */}
       <motion.div variants={cardVariants} initial="hidden" animate="visible" custom={0}
         className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-black text-slate-900">
+          <h1 className="text-3xl font-black text-white leading-tight" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>
             {isReportsPage ? 'Clinical Reports' : 'AI Prediction Logs'}
           </h1>
-          <p className="text-slate-500 mt-1 text-sm">
+          <p className="text-gray-400 mt-1 text-sm font-medium">
             {isReportsPage
               ? 'Comprehensive history of diagnostic imaging reports'
               : 'Neural analysis logs for all patient CT scan and X-Ray studies'}
@@ -129,11 +133,12 @@ export default function PredictionsList() {
             type="button"
             onClick={() => setShowFilters(!showFilters)}
             className={cn(
-              "ps-btn-secondary text-sm gap-1.5",
-              showFilters && "bg-slate-100 border-slate-300"
+              "ps-btn-secondary text-sm gap-1.5 transition-all overflow-hidden relative",
+              showFilters && "border-cyan-500/50 bg-cyan-900/20 shadow-[0_0_15px_rgba(6,182,212,0.15)] text-white"
             )}
           >
-            <Filter className="w-4 h-4" /> Filters {hasActiveFilters && <span className="w-1.5 h-1.5 rounded-full bg-sky-500" />}
+            {hasActiveFilters && <span className="absolute top-2 right-2 w-1.5 h-1.5 rounded-full bg-cyan-400 shadow-[0_0_5px_rgba(6,182,212,0.8)]" />}
+            <Filter className="w-4 h-4" /> Filters
           </button>
           {!isReportsPage && (
             <button
@@ -150,62 +155,67 @@ export default function PredictionsList() {
       {/* Filters Expanded */}
       {showFilters && (
         <motion.div
-          initial={{ opacity: 0, y: -10 }}
-          animate={{ opacity: 1, y: 0 }}
-          className="bg-white rounded-2xl p-6 border border-slate-100 shadow-sm grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4"
+          initial={{ opacity: 0, y: -10, height: 0 }}
+          animate={{ opacity: 1, y: 0, height: 'auto' }}
+          className="rounded-3xl p-6 grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 overflow-hidden"
+          style={{ background: 'rgba(255,255,255,0.02)', border: '1px solid rgba(255,255,255,0.06)' }}
         >
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Search Keywords</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Search Keywords</label>
             <div className="relative">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400" />
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500" />
               <input
                 type="search"
                 placeholder="Patient or diagnosis..."
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                className="w-full pl-9 pr-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 placeholder-slate-400 text-sm focus:ring-2 focus:ring-sky-400 transition-all outline-none"
+                className="w-full pl-9 pr-4 py-2.5 rounded-xl text-white placeholder-gray-600 text-sm focus:border-cyan-500 transition-all outline-none border focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] focus:bg-cyan-950/20"
+                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}
               />
             </div>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Risk Severity</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Risk Severity</label>
             <select
               value={filterRisk}
               onChange={(e) => setFilterRisk(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-sm focus:ring-2 focus:ring-sky-400 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-xl text-gray-300 text-sm focus:border-cyan-500 outline-none transition-all border focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] focus:bg-cyan-950/20 appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em]"
+              style={{ background: 'rgba(255,255,255,0.03) url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', borderColor: 'rgba(255,255,255,0.06)' }}
             >
-              <option value="">All Risk Levels</option>
-              <option value="low">Low Risk</option>
-              <option value="medium">Moderate Risk</option>
-              <option value="high">High Risk</option>
+              <option value="" className="bg-gray-900 text-gray-200">All Risk Levels</option>
+              <option value="low" className="bg-gray-900 text-gray-200">Low Risk</option>
+              <option value="medium" className="bg-gray-900 text-gray-200">Moderate Risk</option>
+              <option value="high" className="bg-gray-900 text-gray-200">High Risk</option>
             </select>
           </div>
 
           <div className="space-y-1.5">
-            <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Diagnostic Classification</label>
+            <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Diagnostic Classification</label>
             <select
               value={filterDiagnosis}
               onChange={(e) => setFilterDiagnosis(e.target.value)}
-              className="w-full px-4 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-sm focus:ring-2 focus:ring-sky-400 outline-none transition-all"
+              className="w-full px-4 py-2.5 rounded-xl text-gray-300 text-sm focus:border-cyan-500 outline-none transition-all border focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] focus:bg-cyan-950/20 appearance-none bg-no-repeat bg-[right_1rem_center] bg-[length:1em]"
+              style={{ background: 'rgba(255,255,255,0.03) url("data:image/svg+xml;charset=US-ASCII,%3Csvg%20width%3D%2224%22%20height%3D%2224%22%20viewBox%3D%220%200%2024%2024%22%20fill%3D%22none%22%20stroke%3D%22%239CA3AF%22%20stroke-width%3D%222%22%20stroke-linecap%3D%22round%22%20stroke-linejoin%3D%22round%22%3E%3Cpolyline%20points%3D%226%209%2012%2015%2018%209%22%3E%3C%2Fpolyline%3E%3C%2Fsvg%3E")', borderColor: 'rgba(255,255,255,0.06)' }}
             >
-              <option value="">All Diagnoses</option>
+              <option value="" className="bg-gray-900 text-gray-200">All Diagnoses</option>
               {diagnosisOptions.filter(Boolean).map((d) => (
-                <option key={d} value={d}>{d}</option>
+                <option key={d} value={d} className="bg-gray-900 text-gray-200">{d}</option>
               ))}
             </select>
           </div>
 
           <div className="flex items-end gap-2">
             <div className="space-y-1.5 flex-1">
-              <label className="text-[10px] font-bold text-slate-400 uppercase tracking-widest pl-1">Date Range</label>
+              <label className="text-[10px] font-bold text-gray-400 uppercase tracking-widest pl-1">Date Range</label>
               <div className="relative">
-                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-slate-400 pointer-events-none" />
+                <Calendar className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-500 pointer-events-none" />
                 <input
                   type="date"
                   value={filterDateFrom}
                   onChange={(e) => setFilterDateFrom(e.target.value)}
-                  className="w-full pl-9 pr-2 py-2 bg-slate-50 border border-slate-200 rounded-xl text-slate-700 text-sm focus:ring-2 focus:ring-sky-400 outline-none transition-all"
+                  className="w-full pl-9 pr-2 py-2.5 rounded-xl text-gray-300 text-sm focus:border-cyan-500 outline-none transition-all border focus:shadow-[0_0_15px_rgba(6,182,212,0.15)] focus:bg-cyan-950/20 custom-calendar-icon"
+                  style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}
                 />
               </div>
             </div>
@@ -213,7 +223,8 @@ export default function PredictionsList() {
               <button
                 type="button"
                 onClick={clearFilters}
-                className="w-10 h-10 rounded-xl bg-slate-100 text-slate-500 hover:bg-slate-200 flex items-center justify-center transition-colors shrink-0"
+                className="w-10 h-10 rounded-xl flex items-center justify-center transition-colors shrink-0 border hover:border-rose-500/50 hover:bg-rose-500/10 text-gray-400 hover:text-rose-400"
+                style={{ background: 'rgba(255,255,255,0.03)', borderColor: 'rgba(255,255,255,0.06)' }}
                 title="Clear filters"
               >
                 <FilterX className="w-4 h-4" />
@@ -225,42 +236,46 @@ export default function PredictionsList() {
 
       {/* Main Content */}
       <motion.div variants={cardVariants} initial="hidden" animate="visible" custom={1}
-        className="bg-white rounded-3xl border border-slate-100 shadow-sm overflow-hidden">
-
+        className="rounded-[24px] border overflow-hidden backdrop-blur-xl"
+        style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.05)', boxShadow: 'inset 0 1px 0 rgba(255,255,255,0.05), 0 8px 30px rgba(0,0,0,0.4)' }}
+      >
         {predictionsError || patientsError ? (
-          <div className="flex flex-col items-center justify-center py-32 text-center">
-            <AlertCircle className="w-12 h-12 text-rose-500 mb-4" />
-            <h2 className="text-lg font-bold text-slate-900">Failed to load platform data</h2>
-            <p className="mt-2 text-sm text-slate-500 max-w-sm">Please check your network connection and verify that the backend services are operational.</p>
+          <div className="flex flex-col items-center justify-center py-32 text-center px-4">
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
+              style={{ background: 'rgba(244, 63, 94, 0.1)', border: '1px solid rgba(244, 63, 94, 0.2)' }}>
+              <AlertCircle className="w-8 h-8 text-rose-500 shadow-[0_0_15px_rgba(244,63,94,0.5)] rounded-full" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Database Connection Failed</h2>
+            <p className="mt-2 text-sm text-gray-400 max-w-sm">Unable to sync platform data. Please query the neural engine for status.</p>
             <button
               type="button"
               onClick={() => { refetchPredictions(); refetchPatients(); }}
-              className="mt-6 ps-btn-primary"
+              className="mt-8 ps-btn-secondary"
             >
               Retry Connection
             </button>
           </div>
         ) : isLoading ? (
           <div className="flex flex-col items-center justify-center py-32">
-            <div className="w-12 h-12 rounded-2xl flex items-center justify-center mb-4"
-              style={{ background: 'linear-gradient(135deg, #0EA5E9, #14B8A6)' }}>
-              <Loader2 className="w-6 h-6 text-white animate-spin" />
+            <div className="w-16 h-16 rounded-2xl flex items-center justify-center mb-6"
+              style={{ background: 'linear-gradient(135deg, rgba(124, 58, 237, 0.2), rgba(6, 182, 212, 0.2))', border: '1px solid rgba(124, 58, 237, 0.3)' }}>
+              <Loader2 className="w-8 h-8 text-cyan-400 animate-spin" />
             </div>
-            <p className="text-xs font-bold text-slate-400 uppercase tracking-widest">Hydrating data...</p>
+            <p className="text-xs font-bold text-cyan-500 uppercase tracking-widest animate-pulse">Hydrating Neural Logs...</p>
           </div>
         ) : !filtered.length ? (
-          <div className="py-32 text-center">
-            <div className="relative inline-block mb-6">
-              <div className="absolute inset-0 bg-sky-200 rounded-full blur-3xl opacity-20"></div>
-              <EmptyStateLung className="w-24 h-20 mx-auto text-slate-200 relative" />
+          <div className="py-32 text-center px-4">
+            <div className="relative inline-block mb-8">
+              <div className="absolute inset-0 bg-cyan-500 rounded-full blur-[60px] opacity-10"></div>
+              <EmptyStateLung className="w-24 h-20 mx-auto text-gray-700 relative filter grayscale" />
             </div>
-            <h3 className="text-lg font-bold text-slate-900 mb-2">No clinical records found</h3>
-            <p className="text-slate-500 text-sm max-w-xs mx-auto mb-8">Generated reports and AI predictions will appear here once processed.</p>
+            <h3 className="text-2xl font-bold text-white mb-2" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>No clinical records found</h3>
+            <p className="text-gray-500 text-sm max-w-sm mx-auto mb-8 leading-relaxed">Generated reports and AI predictions will index here once processed by the core.</p>
             <div className="flex items-center justify-center gap-4">
               <button
                 type="button"
                 onClick={() => navigate('/upload-scan')}
-                className="ps-btn-primary text-sm"
+                className="ps-btn-primary text-sm shadow-[0_0_20px_rgba(6,182,212,0.3)]"
               >
                 <Scan className="w-4 h-4" /> Start First Analysis
               </button>
@@ -279,21 +294,25 @@ export default function PredictionsList() {
           <div className="overflow-x-auto">
             <table className="w-full text-left">
               <thead>
-                <tr className="border-b border-slate-100 bg-slate-50/60">
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Analysis ID</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Patient Identity</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">{isReportsPage ? 'Final Diagnosis' : 'AI Diagnosis'}</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Confidence</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Risk Level</th>
-                  <th className="px-6 py-4 text-[10px] font-bold text-slate-400 uppercase tracking-wider">Study Date</th>
-                  <th className="px-6 py-4 text-right text-[10px] font-bold text-slate-400 uppercase tracking-wider">
+                <tr className="border-b" style={{ borderColor: 'rgba(255,255,255,0.06)', background: 'rgba(255,255,255,0.02)' }}>
+                  <th className="px-6 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Analysis ID</th>
+                  <th className="px-6 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Patient Identity</th>
+                  <th className="px-6 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">{isReportsPage ? 'Final Diagnosis' : 'AI Diagnosis'}</th>
+                  <th className="px-6 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Confidence</th>
+                  <th className="px-6 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Risk Level</th>
+                  <th className="px-6 py-5 text-[10px] font-bold text-gray-500 uppercase tracking-wider">Study Date</th>
+                  <th className="px-6 py-5 text-right text-[10px] font-bold text-gray-500 uppercase tracking-wider">
                     {isReportsPage ? 'Actions' : ''}
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-slate-50">
+              <tbody className="divide-y" style={{ borderColor: 'rgba(255,255,255,0.02)' }}>
                 {filtered.map((row, i) => {
                   const risk = row.urgency_level || (row.confidence >= 70 ? 'High' : row.confidence >= 40 ? 'Medium' : 'Low');
+                  const isHigh = risk === 'High';
+                  const isMid = risk === 'Medium';
+                  const isLow = !isHigh && !isMid;
+
                   return (
                     <motion.tr
                       key={row.id}
@@ -302,60 +321,65 @@ export default function PredictionsList() {
                       transition={{ delay: i * 0.02 }}
                       onClick={!isReportsPage ? () => navigate(`/predictions/${row.id}`) : undefined}
                       className={cn(
-                        'hover:bg-sky-50/40 transition-colors group',
+                        'transition-colors group hover:bg-white/5',
                         !isReportsPage && 'cursor-pointer'
                       )}
                     >
                       <td className="px-6 py-5">
-                        <div className="flex items-center gap-2">
-                          <ClipboardList className="w-3.5 h-3.5 text-slate-300" />
-                          <span className="text-xs font-mono font-bold text-slate-400">#{row.id}</span>
+                        <div className="flex items-center gap-3">
+                          <div className="w-8 h-8 rounded-lg flex items-center justify-center border"
+                            style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
+                            <ClipboardList className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400 transition-colors" />
+                          </div>
+                          <span className="text-xs font-mono font-bold text-gray-400 group-hover:text-gray-300 transition-colors">#{String(row.id).padStart(4, '0')}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <div className="w-8 h-8 rounded-xl bg-sky-50 flex items-center justify-center text-xs font-bold text-sky-700 group-hover:bg-sky-500 group-hover:text-white transition-all shadow-inner">
+                          <div className="w-9 h-9 rounded-xl flex items-center justify-center text-xs font-bold text-gray-300 group-hover:text-white transition-all border"
+                            style={{ background: 'rgba(124, 58, 237, 0.1)', borderColor: 'rgba(124, 58, 237, 0.2)' }}>
                             {(patientMap[row.patient_id] ?? 'P').charAt(0).toUpperCase()}
                           </div>
                           <div>
-                            <p className="text-sm font-bold text-slate-800 leading-none">{patientMap[row.patient_id] ?? `Patient #${row.patient_id}`}</p>
-                            <p className="text-[10px] text-slate-400 mt-1 uppercase font-bold tracking-widest">ID: {row.patient_id}</p>
+                            <p className="text-sm font-bold text-gray-200 leading-none group-hover:text-white transition-colors">{patientMap[row.patient_id] ?? `Patient #${row.patient_id}`}</p>
+                            <p className="text-[10px] text-gray-500 mt-1 uppercase font-bold tracking-widest">ID: {row.patient_id}</p>
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">
-                          <Brain className="w-3.5 h-3.5 text-sky-400 opacity-0 group-hover:opacity-100 transition-opacity" />
-                          <span className="text-sm font-bold text-slate-700">{row.final_diagnosis ?? 'Analyzing...'}</span>
+                          <Brain className="w-3.5 h-3.5 text-cyan-400 opacity-0 group-hover:opacity-100 transition-opacity drop-shadow-[0_0_5px_rgba(6,182,212,0.8)]" />
+                          <span className="text-sm font-bold text-gray-300 group-hover:text-white transition-colors">{row.final_diagnosis ?? 'Analyzing...'}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-3">
-                          <span className="text-sm font-black text-sky-600 tabular-nums">{formatConfidence(row.confidence)}</span>
-                          <div className="w-12 h-1 rounded-full bg-slate-100 overflow-hidden hidden sm:block">
-                            <div className="h-full bg-sky-500 rounded-full" style={{ width: `${row.confidence}%` }} />
+                          <span className="text-sm font-black text-cyan-400 tabular-nums">{formatConfidence(row.confidence)}</span>
+                          <div className="w-16 h-1.5 rounded-full overflow-hidden hidden sm:block" style={{ background: 'rgba(255,255,255,0.1)' }}>
+                            <div className="h-full rounded-full transition-all duration-1000" style={{ width: `${row.confidence}%`, background: 'linear-gradient(90deg, #34D399, #06B6D4)', boxShadow: '0 0 10px rgba(6,182,212,0.5)' }} />
                           </div>
                         </div>
                       </td>
                       <td className="px-6 py-5">
                         <span
                           className={cn(
-                            'inline-flex items-center gap-1.5 px-3 py-1 rounded-full text-[10px] font-black uppercase tracking-wider border',
-                            risk === 'High' && 'bg-rose-50 text-rose-700 border-rose-200',
-                            risk === 'Medium' && 'bg-amber-50 text-amber-700 border-amber-200',
-                            (risk === 'Low' || !risk) && 'bg-teal-50 text-teal-700 border-teal-200'
+                            'inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-[9px] font-black uppercase tracking-wider border',
+                            isHigh && 'bg-rose-500/10 text-rose-400 border-rose-500/30',
+                            isMid && 'bg-amber-500/10 text-amber-400 border-amber-500/30',
+                            isLow && 'bg-teal-500/10 text-teal-400 border-teal-500/30'
                           )}
+                          style={isHigh ? { boxShadow: '0 0 10px rgba(244,63,94,0.15)'} : isMid ? { boxShadow: '0 0 10px rgba(245,158,11,0.15)'} : { boxShadow: '0 0 10px rgba(20,184,166,0.15)' }}
                         >
                           <span className={cn('w-1.5 h-1.5 rounded-full',
-                            risk === 'High' ? 'bg-rose-500' : risk === 'Medium' ? 'bg-amber-500' : 'bg-teal-500'
+                            isHigh ? 'bg-rose-500 shadow-[0_0_5px_rgba(244,63,94,0.8)]' : isMid ? 'bg-amber-500 shadow-[0_0_5px_rgba(245,158,11,0.8)]' : 'bg-teal-500 shadow-[0_0_5px_rgba(20,184,166,0.8)]'
                           )}></span>
                           {risk}
                         </span>
                       </td>
                       <td className="px-6 py-5">
                         <div className="flex items-center gap-2">
-                          <Calendar className="w-3.5 h-3.5 text-slate-300" />
-                          <span className="text-sm font-medium text-slate-500">{new Date(row.created_at).toLocaleDateString()}</span>
+                          <Calendar className="w-3.5 h-3.5 text-gray-500 group-hover:text-cyan-400/70 transition-colors" />
+                          <span className="text-sm font-medium text-gray-400 group-hover:text-gray-300 transition-colors">{new Date(row.created_at).toLocaleDateString()}</span>
                         </div>
                       </td>
                       <td className="px-6 py-5 text-right">
@@ -364,7 +388,7 @@ export default function PredictionsList() {
                             <button
                               type="button"
                               onClick={() => navigate(`/predictions/${row.id}`)}
-                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-sky-50 text-sky-600 hover:bg-sky-500 hover:text-white transition-all shadow-sm border border-sky-100"
+                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-cyan-500/10 text-cyan-400 hover:bg-cyan-500 hover:text-white transition-all shadow-[0_0_10px_rgba(6,182,212,0.1)] border border-cyan-500/20 hover:shadow-[0_0_20px_rgba(6,182,212,0.4)]"
                               title="View Report"
                             >
                               <ExternalLink className="w-4 h-4" />
@@ -372,14 +396,16 @@ export default function PredictionsList() {
                             <button
                               type="button"
                               onClick={() => window.open(`${window.location.origin}/predictions/${row.id}?print=1`, '_blank', 'noopener')}
-                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-slate-50 text-slate-500 hover:bg-slate-800 hover:text-white transition-all shadow-sm border border-slate-200"
+                              className="w-9 h-9 flex items-center justify-center rounded-xl bg-white/5 text-gray-400 hover:bg-white hover:text-gray-900 transition-all border border-white/10"
                               title="Export PDF"
                             >
                               <FileDown className="w-4 h-4" />
                             </button>
                           </div>
                         ) : (
-                          <ChevronRight className="w-5 h-5 text-slate-300 group-hover:text-sky-500 group-hover:translate-x-1 transition-all" />
+                          <div className="w-8 h-8 rounded-full flex items-center justify-center ml-auto bg-white/5 opacity-0 group-hover:opacity-100 transition-all group-hover:bg-cyan-500/20 group-hover:text-cyan-400">
+                            <ChevronRight className="w-4 h-4 text-gray-400 transition-colors group-hover:text-cyan-400" />
+                          </div>
                         )}
                       </td>
                     </motion.tr>
@@ -400,21 +426,29 @@ export default function PredictionsList() {
             { label: 'High Risk Studies', value: filtered.filter(p => p.urgency_level === 'High').length, icon: Activity, color: 'rose' },
             { label: 'Mean Confidence', value: formatConfidence(filtered.reduce((acc, p) => acc + (p.confidence || 0), 0) / filtered.length), icon: Brain, color: 'teal' },
             { label: 'Recent Growth', value: '+12%', icon: Scan, color: 'amber' },
-          ].map((s) => (
-            <div key={s.label} className="bg-white p-4 rounded-2xl border border-slate-100 shadow-sm flex items-center gap-4">
-              <div className={cn("w-10 h-10 rounded-xl flex items-center justify-center",
-                s.color === 'sky' ? 'bg-sky-50 text-sky-600' :
-                  s.color === 'rose' ? 'bg-rose-50 text-rose-600' :
-                    s.color === 'teal' ? 'bg-teal-50 text-teal-600' : 'bg-amber-50 text-amber-600'
+          ].map((s) => {
+            const isSky = s.color === 'sky';
+            const isRose = s.color === 'rose';
+            const isTeal = s.color === 'teal';
+            const isAmber = s.color === 'amber';
+            
+            return (
+            <div key={s.label} className="p-5 rounded-2xl flex items-center gap-4 border" style={{ background: 'rgba(255,255,255,0.02)', borderColor: 'rgba(255,255,255,0.06)' }}>
+              <div className={cn("w-12 h-12 rounded-xl flex items-center justify-center border",
+                isSky ? 'bg-cyan-500/10 text-cyan-400 border-cyan-500/20 shadow-[0_0_15px_rgba(6,182,212,0.15)]' :
+                isRose ? 'bg-rose-500/10 text-rose-400 border-rose-500/20 shadow-[0_0_15px_rgba(244,63,94,0.15)]' :
+                isTeal ? 'bg-emerald-500/10 text-emerald-400 border-emerald-500/20 shadow-[0_0_15px_rgba(16,185,129,0.15)]' : 
+                'bg-amber-500/10 text-amber-400 border-amber-500/20 shadow-[0_0_15px_rgba(245,158,11,0.15)]'
               )}>
                 <s.icon className="w-5 h-5" />
               </div>
               <div>
-                <p className="text-lg font-black text-slate-800 leading-none">{s.value}</p>
-                <p className="text-[10px] font-bold text-slate-400 uppercase tracking-widest mt-1">{s.label}</p>
+                <p className="text-xl font-black text-white leading-none font-mono tracking-tight">{s.value}</p>
+                <p className="text-[9px] font-bold text-gray-500 uppercase tracking-widest mt-1.5">{s.label}</p>
               </div>
             </div>
-          ))}
+            );
+          })}
         </motion.div>
       )}
     </div>

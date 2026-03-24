@@ -2,16 +2,8 @@ import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { patientService } from '../services/api';
 import {
-    UserPlus,
-    ArrowLeft,
-    User,
-    Activity,
-    Loader2,
-    Check,
-    Baby,
-    Users,
-    Heart,
-    Calendar
+    UserPlus, ArrowLeft, User, Activity, Loader2, Check,
+    Baby, Users, Heart, Calendar
 } from 'lucide-react';
 import { motion } from 'framer-motion';
 import { cn } from '@/lib/utils';
@@ -43,47 +35,68 @@ const AddPatient = () => {
         }
     };
 
+    const inputStyle = {
+        background: 'rgba(255, 255, 255, 0.04)',
+        border: '1px solid rgba(255, 255, 255, 0.08)',
+    };
+
+    const handleFocus = (e) => {
+        e.target.style.borderColor = 'rgba(124, 58, 237, 0.4)';
+        e.target.style.boxShadow = '0 0 0 3px rgba(124, 58, 237, 0.1), 0 0 20px rgba(124, 58, 237, 0.08)';
+    };
+    const handleBlur = (e) => {
+        e.target.style.borderColor = 'rgba(255, 255, 255, 0.08)';
+        e.target.style.boxShadow = 'none';
+    };
+
     return (
         <motion.div
             initial={{ opacity: 0, y: 20 }}
             animate={{ opacity: 1, y: 0 }}
-            className="max-w-4xl mx-auto space-y-10 pb-20"
+            className="max-w-4xl mx-auto space-y-10 pb-20 relative"
         >
-            <div className="flex items-center gap-6">
-                <button
+            {/* Ambient glows */}
+            <div className="absolute top-[-50px] right-[-100px] w-[500px] h-[500px] bg-purple-600/10 rounded-full blur-[120px] pointer-events-none mix-blend-screen" />
+            <div className="absolute bottom-[10%] left-[-100px] w-[400px] h-[400px] bg-cyan-600/10 rounded-full blur-[100px] pointer-events-none mix-blend-screen" />
+
+            <div className="flex items-center gap-6 relative z-10">
+                <motion.button
+                    whileHover={{ scale: 1.05 }}
+                    whileTap={{ scale: 0.95 }}
                     onClick={() => navigate('/patients')}
-                    className="p-4 bg-white dark:bg-slate-900 border border-white/40 dark:border-slate-700/40 rounded-2xl shadow-sm text-slate-400 hover:text-primary-500 hover:scale-110 transition-all group"
+                    className="p-4 rounded-2xl text-gray-500 hover:text-purple-400 transition-all group"
+                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                 >
                     <ArrowLeft className="w-6 h-6 group-hover:-translate-x-1 transition-transform" />
-                </button>
+                </motion.button>
                 <div>
-                    <h1 className="text-4xl font-black text-slate-900 dark:text-white mb-1 tracking-tight">New Patient</h1>
-                    <p className="text-slate-400 font-semibold text-lg uppercase tracking-wider text-[10px]">Add a new patient to the diagnostic queue</p>
+                    <h1 className="text-3xl font-bold text-white mb-1" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>New Patient</h1>
+                    <p className="text-gray-500 font-medium text-sm">Add a new patient to the diagnostic queue</p>
                 </div>
             </div>
 
             <div className="grid grid-cols-1 md:grid-cols-3 gap-10">
-
                 {/* Left Side: Guiding Info */}
                 <div className="space-y-8">
-                    <div className="glass-morphism p-8 rounded-[40px] border border-white relative overflow-hidden group">
-                        <div className="absolute top-0 right-0 p-4 -translate-y-4 opacity-0 group-hover:translate-y-0 group-hover:opacity-100 transition-all">
-                            <Heart className="w-6 h-6 text-primary-500/20" />
+                    <div className="rounded-3xl p-8 relative overflow-hidden"
+                        style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.06)' }}>
+                        <div className="w-14 h-14 rounded-2xl flex items-center justify-center mb-6"
+                            style={{ background: 'rgba(124,58,237,0.12)', border: '1px solid rgba(124,58,237,0.2)' }}>
+                            <UserPlus className="w-7 h-7 text-purple-400" />
                         </div>
-                        <div className="w-16 h-16 rounded-3xl bg-primary-100 dark:bg-primary-900/30 text-primary-500 flex items-center justify-center mb-6 shadow-inner">
-                            <UserPlus className="w-8 h-8" />
-                        </div>
-                        <h3 className="text-xl font-black text-slate-900 dark:text-white mb-4 leading-tight">Registration Guidelines</h3>
-                        <p className="text-slate-500 font-medium text-sm leading-relaxed mb-6">Enter correct patient demographics to ensure high accuracy in AI model outputs.</p>
-                        <ul className="space-y-4">
+                        <h3 className="text-lg font-bold text-gray-200 mb-4" style={{ fontFamily: "'Space Grotesk', sans-serif" }}>Registration Guidelines</h3>
+                        <p className="text-gray-500 text-sm leading-relaxed mb-6">Enter correct patient demographics to ensure high accuracy in AI model outputs.</p>
+                        <ul className="space-y-3">
                             {[
                                 "Full Name is required",
                                 "Age must be numerical",
                                 "Verify gender identity",
                             ].map((text, idx) => (
-                                <li key={idx} className="flex gap-3 items-center text-xs font-bold text-slate-400 uppercase tracking-wider bg-slate-50/50 dark:bg-slate-800/50 p-4 rounded-2xl border border-white/20">
-                                    <div className="w-6 h-6 rounded-lg bg-green-50/50 text-green-500 flex items-center justify-center shrink-0">
-                                        <Check className="w-4 h-4" />
+                                <li key={idx} className="flex gap-3 items-center text-xs font-semibold text-gray-400 p-3 rounded-xl"
+                                    style={{ background: 'rgba(255,255,255,0.03)', border: '1px solid rgba(255,255,255,0.05)' }}>
+                                    <div className="w-5 h-5 rounded-md flex items-center justify-center shrink-0"
+                                        style={{ background: 'rgba(16,185,129,0.12)' }}>
+                                        <Check className="w-3 h-3 text-emerald-400" />
                                     </div>
                                     {text}
                                 </li>
@@ -94,35 +107,49 @@ const AddPatient = () => {
 
                 {/* Right Side: Form */}
                 <div className="md:col-span-2">
-                    <div className="glass-morphism p-10 rounded-[44px] shadow-2xl border border-white relative">
+                    <div className="rounded-3xl p-10 relative"
+                        style={{
+                            background: 'rgba(255,255,255,0.03)',
+                            border: '1px solid rgba(255,255,255,0.06)',
+                            boxShadow: '0 8px 32px rgba(0,0,0,0.3)',
+                        }}>
+                        {/* Top glow */}
+                        <div className="absolute top-0 left-0 right-0 h-px" style={{ background: 'linear-gradient(90deg, transparent, rgba(124,58,237,0.2), transparent)' }} />
+
                         <form onSubmit={handleSubmit} className="space-y-10">
-                            <div className="grid grid-cols-1 md:grid-cols-2 gap-10">
+                            <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
                                 <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[2.5px] ml-4">Full Patient Name</label>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-4">Full Patient Name</label>
                                     <div className="relative group">
-                                        <User className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                                        <User className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-purple-400 transition-colors" />
                                         <input
                                             type="text"
                                             value={formData.name}
                                             onChange={(e) => setFormData({ ...formData, name: e.target.value })}
                                             placeholder="Enter full name"
-                                            className="w-full bg-slate-50/70 dark:bg-slate-800/70 border border-white/50 dark:border-slate-700/50 rounded-3xl py-5 pl-16 pr-8 outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-bold text-lg"
+                                            className="w-full rounded-2xl py-4 pl-14 pr-6 outline-none transition-all font-semibold text-white placeholder-gray-600"
+                                            style={inputStyle}
+                                            onFocus={handleFocus}
+                                            onBlur={handleBlur}
                                             required
                                         />
                                     </div>
                                 </div>
 
                                 <div className="flex flex-col gap-3">
-                                    <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[2.5px] ml-4">Age (Years)</label>
+                                    <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-4">Age (Years)</label>
                                     <div className="relative group">
-                                        <Calendar className="absolute left-6 top-1/2 -translate-y-1/2 w-5 h-5 text-slate-400 group-focus-within:text-primary-500 transition-colors" />
+                                        <Calendar className="absolute left-5 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-600 group-focus-within:text-purple-400 transition-colors" />
                                         <input
                                             type="number"
                                             value={formData.age}
                                             onChange={(e) => setFormData({ ...formData, age: e.target.value })}
                                             placeholder="e.g. 45"
                                             min="0"
-                                            className="w-full bg-slate-50/70 dark:bg-slate-800/70 border border-white/50 dark:border-slate-700/50 rounded-3xl py-5 pl-16 pr-8 outline-none focus:ring-4 focus:ring-primary-500/10 focus:border-primary-500 transition-all font-bold text-lg"
+                                            className="w-full rounded-2xl py-4 pl-14 pr-6 outline-none transition-all font-semibold text-white placeholder-gray-600"
+                                            style={inputStyle}
+                                            onFocus={handleFocus}
+                                            onBlur={handleBlur}
                                             required
                                         />
                                     </div>
@@ -130,55 +157,68 @@ const AddPatient = () => {
                             </div>
 
                             <div className="flex flex-col gap-4">
-                                <label className="text-[10px] font-bold text-slate-400 uppercase tracking-[2.5px] ml-4">Gender Selection</label>
-                                <div className="grid grid-cols-3 gap-6">
+                                <label className="text-[10px] font-bold text-gray-500 uppercase tracking-widest ml-4">Gender Selection</label>
+                                <div className="grid grid-cols-3 gap-4">
                                     {['Male', 'Female', 'Other'].map(option => (
-                                        <button
+                                        <motion.button
                                             key={option}
                                             type="button"
+                                            whileHover={{ scale: 1.02 }}
+                                            whileTap={{ scale: 0.98 }}
                                             onClick={() => setFormData({ ...formData, gender: option })}
                                             className={cn(
-                                                "py-6 rounded-3xl border-2 transition-all font-black text-sm uppercase tracking-widest flex flex-col items-center gap-4 group relative overflow-hidden",
-                                                formData.gender === option
-                                                    ? "bg-primary-500 text-white border-primary-400 shadow-xl shadow-primary-500/20 translate-y-[-4px]"
-                                                    : "bg-white/40 dark:bg-slate-800/40 text-slate-400 border-white dark:border-slate-700 hover:bg-white dark:hover:bg-slate-800 hover:border-primary-200"
+                                                "py-5 rounded-2xl transition-all font-bold text-sm uppercase tracking-widest flex flex-col items-center gap-3 relative overflow-hidden",
                                             )}
+                                            style={formData.gender === option ? {
+                                                background: 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                                                boxShadow: '0 8px 24px rgba(124,58,237,0.3)',
+                                                color: 'white',
+                                                border: 'none',
+                                            } : {
+                                                background: 'rgba(255,255,255,0.04)',
+                                                border: '1px solid rgba(255,255,255,0.08)',
+                                                color: '#9CA3AF',
+                                            }}
                                         >
-                                            {option === 'Male' && <Activity className="w-6 h-6" />}
-                                            {option === 'Female' && <Heart className="w-6 h-6" />}
-                                            {option === 'Other' && <Users className="w-6 h-6" />}
+                                            {option === 'Male' && <Activity className="w-5 h-5" />}
+                                            {option === 'Female' && <Heart className="w-5 h-5" />}
+                                            {option === 'Other' && <Users className="w-5 h-5" />}
                                             {option}
-                                            {formData.gender === option && (
-                                                <div className="absolute -bottom-2 -right-2 p-4 bg-white/20 rounded-full">
-                                                    <Check className="w-5 h-5 text-white" />
-                                                </div>
-                                            )}
-                                        </button>
+                                        </motion.button>
                                     ))}
                                 </div>
                             </div>
 
-                            <div className="pt-10 flex gap-6">
-                                <button
+                            <div className="pt-6 flex gap-4">
+                                <motion.button
+                                    whileHover={{ scale: 1.02 }}
+                                    whileTap={{ scale: 0.98 }}
                                     type="button"
                                     onClick={() => navigate('/patients')}
-                                    className="flex-1 px-8 py-5 bg-white dark:bg-slate-900 border border-slate-200 dark:border-slate-700 text-slate-500 rounded-[24px] font-black text-sm uppercase tracking-widest hover:bg-slate-50 transition-all shadow-sm"
+                                    className="flex-1 px-6 py-4 rounded-2xl font-bold text-sm text-gray-400 transition-all"
+                                    style={{ background: 'rgba(255,255,255,0.04)', border: '1px solid rgba(255,255,255,0.08)' }}
                                 >
                                     Cancel
-                                </button>
-                                <button
+                                </motion.button>
+                                <motion.button
+                                    whileHover={{ scale: isSubmitting ? 1 : 1.02 }}
+                                    whileTap={{ scale: isSubmitting ? 1 : 0.98 }}
                                     type="submit"
                                     disabled={isSubmitting}
-                                    className="flex-[2] bg-primary-500 text-white rounded-[24px] py-5 font-black text-sm uppercase tracking-widest shadow-xl shadow-primary-500/30 hover:bg-primary-600 hover:translate-y-[-4px] transition-all flex items-center justify-center gap-3 disabled:opacity-70 disabled:cursor-not-allowed"
+                                    className="flex-[2] text-white rounded-2xl py-4 font-bold text-sm uppercase tracking-widest flex items-center justify-center gap-3 disabled:opacity-50 disabled:cursor-not-allowed"
+                                    style={{
+                                        background: isSubmitting ? 'rgba(255,255,255,0.1)' : 'linear-gradient(135deg, #7C3AED, #06B6D4)',
+                                        boxShadow: isSubmitting ? 'none' : '0 8px 24px rgba(124,58,237,0.3)',
+                                    }}
                                 >
                                     {isSubmitting ? (
-                                        <Loader2 className="w-6 h-6 animate-spin" />
+                                        <Loader2 className="w-5 h-5 animate-spin" />
                                     ) : (
                                         <>
-                                            Finalize Registration <Check className="w-6 h-6" />
+                                            Finalize Registration <Check className="w-5 h-5" />
                                         </>
                                     )}
-                                </button>
+                                </motion.button>
                             </div>
                         </form>
                     </div>
